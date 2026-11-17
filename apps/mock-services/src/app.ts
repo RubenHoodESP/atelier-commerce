@@ -1,6 +1,6 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
-import { CART_LIMITS, isCatalogQuery, isCartId, isIdempotencyKey, isOrderId, isProductQuery, isQuantity, isRecord } from '@atelier/contracts';
+import { CART_LIMITS, isCatalogQuery, isCartId, isIdempotencyKey, isIntegerInRange, isOrderId, isProductQuery, isQuantity, isRecord } from '@atelier/contracts';
 
 // Intentionally vendor-shaped: the integration must normalize it.
 export const horizonFixture = {
@@ -9,15 +9,15 @@ export const horizonFixture = {
 };
 export const productFixtures = [
   horizonFixture,
-  ...[
+  ...([
     ['Horizon Sand', 'Horizon', 95000, 5], ['Horizon Dawn', 'Horizon', 125000, 0], ['Horizon Field', 'Horizon', 140000, 2],
     ['Meridian Classic', 'Meridian', 110000, 4], ['Meridian Silver', 'Meridian', 135000, 0],
     ['Meridian Slate', 'Meridian', 135000, 7], ['Meridian Coast', 'Meridian', 160000, 1],
     ['Nocturne Ink', 'Nocturne', 150000, 2], ['Nocturne Moon', 'Nocturne', 175000, 0],
     ['Nocturne Ember', 'Nocturne', 180000, 3], ['Nocturne Midnight', 'Nocturne', 210000, 1],
-  ].map(([name, collection, price, stock], index) => ({
+  ] satisfies [string, string, number, number][]).map(([name, collection, price, stock], index) => ({
     sku: `watch-${String(index + 2).padStart(3, '0')}`, display_name: `Atelier ${name}`,
-    collection_name: collection as string, unit_price: { cents: price as number, currency_code: 'EUR' }, available_units: stock as number,
+    collection_name: collection, unit_price: { cents: price, currency_code: 'EUR' }, available_units: stock,
   })),
 ];
 export const brandFixture = {
@@ -106,12 +106,12 @@ export function createProviderApp({ products = productFixtures, content = brandF
     if (!lines) { rejectCart(res, 404, 'cart_not_found'); return; }
     const body: unknown = req.body;
     const qty = isRecord(body) ? body.qty : undefined;
-    if (!Number.isInteger(qty) || (qty as number) < 0 || (qty as number) > CART_LIMITS.maxQuantity) { rejectCart(res, 400, 'invalid_line'); return; }
+    if (!isIntegerInRange(qty, 0, CART_LIMITS.maxQuantity)) { rejectCart(res, 400, 'invalid_line'); return; }
     const current = lines.get(req.params.sku);
     if (current === undefined) { rejectCart(res, 404, 'line_not_found'); return; }
     const product = products.find(item => item.sku === req.params.sku)!;
-    if ((qty as number) > current && (qty as number) > stock.get(product.sku)!) { rejectCart(res, 409, 'insufficient_stock'); return; }
-    if (qty === 0) lines.delete(req.params.sku); else lines.set(req.params.sku, qty as number);
+    if (qty > current && qty > stock.get(product.sku)!) { rejectCart(res, 409, 'insufficient_stock'); return; }
+    if (qty === 0) lines.delete(req.params.sku); else lines.set(req.params.sku, qty);
     res.json(vendorCart(req.params.id, lines));
   });
   const orderError = (req: express.Request, res: express.Response, status: number, code: string, message: string) => {
@@ -127,9 +127,9 @@ export function createProviderApp({ products = productFixtures, content = brandF
     if (!isIdempotencyKey(key)) { orderError(req, res, 400, 'INVALID_INPUT', 'A valid Idempotency-Key header is required.'); return; }
     const body: unknown = req.body;
     const items = isRecord(body) && Object.keys(body).length === 1 && Array.isArray(body.items) ? body.items : null;
-    const valid = items && items.length >= 1 && items.length <= CART_LIMITS.maxLines && items.every(item =>
-      isRecord(item) && Object.keys(item).length === 2 && isProductQuery({ id: item.productId }) && isQuantity(item.quantity));
-    const lines = valid ? (items as { productId: string; quantity: number }[]) : null;
+    const isLine = (item: unknown): item is { productId: string; quantity: number } => isRecord(item)
+      && Object.keys(item).length === 2 && typeof item.productId === 'string' && isProductQuery({ id: item.productId }) && isQuantity(item.quantity);
+    const lines = items && items.length >= 1 && items.length <= CART_LIMITS.maxLines && items.every(isLine) ? items : null;
     if (!lines || new Set(lines.map(line => line.productId)).size !== lines.length) {
       orderError(req, res, 400, 'INVALID_INPUT', 'Order items must be unique product IDs with integer quantities.'); return;
     }

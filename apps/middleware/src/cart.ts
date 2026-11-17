@@ -78,8 +78,8 @@ export async function addCartItem(settings: ProviderSettings, cartId: unknown, i
 // Idempotent by design: the same quantity for the same line always yields the same cart.
 export async function setCartItemQuantity(settings: ProviderSettings, cartId: unknown, productId: unknown, input: unknown,
   requestId = randomUUID()): Promise<CartResult> {
-  if (!isCartId(cartId) || !isProductQuery({ id: productId }) || !isCartLineUpdate(input)) return failure('INVALID_INPUT', requestId);
-  return callProvider(settings, `/carts/${cartId}/lines/${productId as string}`, requestId, {
+  if (!isCartId(cartId) || typeof productId !== 'string' || !isProductQuery({ id: productId }) || !isCartLineUpdate(input)) return failure('INVALID_INPUT', requestId);
+  return callProvider(settings, `/carts/${cartId}/lines/${productId}`, requestId, {
     method: 'PUT', body: { qty: input.quantity }, expectedId: cartId,
   });
 }

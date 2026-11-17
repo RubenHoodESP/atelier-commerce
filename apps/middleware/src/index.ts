@@ -1,5 +1,5 @@
 import { createMiddlewareServer } from './server.js';
-const server = await createMiddlewareServer({
+const server = createMiddlewareServer({
   providerUrl: process.env.PROVIDER_URL ?? 'http://127.0.0.1:4100',
   timeoutMs: Number(process.env.PROVIDER_TIMEOUT_MS ?? 1500),
 });

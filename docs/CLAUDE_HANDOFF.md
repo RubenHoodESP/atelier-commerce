@@ -22,7 +22,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M3 están implementados; M4 está en curso (cortes 1–2: temas y auditoría automática de accesibilidad).**
+**M0–M3 están implementados; M4 está en curso (cortes 1–3: temas, auditoría de accesibilidad y lint con tipos).**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
@@ -32,7 +32,8 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - Corte de pulido: movimiento con CSS y Motion 14.9.0 limitado a catálogo y bolsa, sin ocultar contenido sin JavaScript y con `prefers-reduced-motion` ([ADR 0007](adr/0007-motion.md)). Playwright usa movimiento reducido por defecto. Titulares en Cormorant Garamond autoalojada con `next/font/local` ([ADR 0008](adr/0008-display-typography.md)).
 - M4 corte 1: tema claro/oscuro con selector Auto/Light/Dark, cookie HttpOnly y `data-theme` desde el servidor; contraste de ambas paletas comprobado por test ([ADR 0009](adr/0009-colour-themes.md)). La CI ya se puede leer con las herramientas de GitHub y pasó en las PR #5–#7.
 - M4 corte 2: axe en todo el recorrido y ambos temas, 0 infracciones tras corregir `label-content-name-mismatch` con tarjetas de enlace extendido y el nombre visible de la bolsa; guion manual de lector de pantalla en [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md), pendiente de ejecutar.
-- M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
+- M4 corte 3: lint con tipos (`oxlint-tsgolint` 7.0.2005, compatible con TypeScript 7.0.2) en `npm run lint`, CI y hook; 59 hallazgos corregidos sin cambiar comportamiento, sustituyendo aserciones por guards que estrechan el tipo.
+- M4 pendiente: política de auditoría de dependencias, rendimiento medido con Lighthouse, revisión manual con lector de pantalla (del alumno) y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
@@ -130,4 +131,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M4 está en curso (cortes 1–2 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M4 está en curso (cortes 1–3 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

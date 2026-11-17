@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { COLLECTIONS, catalogSearch, type CatalogQuery } from '@atelier/contracts';
+import { COLLECTIONS, catalogSearch, isCollection, isSort, type CatalogQuery } from '@atelier/contracts';
 export function CatalogFilters({ query }: { query: CatalogQuery }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -20,8 +20,8 @@ export function CatalogFilters({ query }: { query: CatalogQuery }) {
     const next: CatalogQuery = {};
     const collection = data.get('collection');
     const sort = data.get('sort');
-    if (collection) next.collection = collection as CatalogQuery['collection'];
-    if (sort) next.sort = sort as CatalogQuery['sort'];
+    if (isCollection(collection)) next.collection = collection;
+    if (isSort(sort)) next.sort = sort;
     startTransition(() => router.push(`/products${catalogSearch(next)}`, { scroll: false }));
   }
   return (

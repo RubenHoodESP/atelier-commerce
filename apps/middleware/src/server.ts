@@ -94,7 +94,7 @@ export function createMiddlewareServer(settings: ProviderSettings) {
   });
   const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
     // URIError: malformed path encoding; body-parser errors carry a `type` (bad JSON, too large).
-    const bodyError = error instanceof Error && typeof (error as { type?: unknown }).type === 'string';
+    const bodyError = error instanceof Error && 'type' in error && typeof error.type === 'string';
     const code = error instanceof URIError || bodyError ? 'INVALID_INPUT' : 'INTERNAL_ERROR';
     const result: ProductResult = { ok: false, error: {
       code, message: code === 'INVALID_INPUT' ? 'Invalid request.' : 'The product service is unavailable.',

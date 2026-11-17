@@ -18,7 +18,8 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
 function failure(code: ErrorCode, requestId: string): Failure {
   return { ok: false, error: { code, message: MESSAGES[code] ?? 'The order service is unavailable.', requestId } };
 }
-const PROVIDER_CODES = new Set<ErrorCode>(['PRODUCT_NOT_FOUND', 'OUT_OF_STOCK', 'IDEMPOTENCY_CONFLICT', 'ORDER_NOT_FOUND']);
+const PROVIDER_CODES: readonly ErrorCode[] = ['PRODUCT_NOT_FOUND', 'OUT_OF_STOCK', 'IDEMPOTENCY_CONFLICT', 'ORDER_NOT_FOUND'];
+const isProviderCode = (value: unknown): value is ErrorCode => PROVIDER_CODES.some(code => code === value);
 
 // Provider order -> public Order; totals must agree with the lines.
 export function normalizeOrder(data: unknown): Order | null {
@@ -27,7 +28,7 @@ export function normalizeOrder(data: unknown): Order | null {
     productId: item.productId, name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, lineTotal: item.lineTotal,
   } : null);
   const order = { id: data.id, status: data.status, lines, total: data.total,
-    itemCount: lines.reduce((sum, line) => sum + (line && Number.isInteger(line.quantity) ? line.quantity as number : 0), 0) };
+    itemCount: lines.reduce((sum, line) => sum + (line && typeof line.quantity === 'number' ? line.quantity : 0), 0) };
   return isOrder(order) ? order : null;
 }
 
@@ -44,7 +45,7 @@ async function callProvider(settings: ProviderSettings, path: string, requestId:
     });
     const data: unknown = await response.json();
     if (!accept.includes(response.status)) {
-      const code = isRecord(data) && typeof data.code === 'string' && PROVIDER_CODES.has(data.code as ErrorCode) ? data.code as ErrorCode : null;
+      const code = isRecord(data) && isProviderCode(data.code) ? data.code : null;
       return { result: failure(code ?? (response.status === 400 ? 'UPSTREAM_INVALID_RESPONSE' : 'UPSTREAM_UNAVAILABLE'), requestId), status: 0 };
     }
     const order = normalizeOrder(data);

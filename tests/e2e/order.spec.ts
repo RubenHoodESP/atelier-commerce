@@ -62,7 +62,7 @@ test.describe('without JavaScript', () => {
   test('a double submission with the same idempotency key creates one order', async ({ page }) => {
     await add(page, 'watch-004', 2);
     const fields = await page.locator('form:has(input[name="idempotencyKey"]) input').evaluateAll(inputs =>
-      inputs.map(input => [(input as HTMLInputElement).name, (input as HTMLInputElement).value]));
+      inputs.filter(input => input instanceof HTMLInputElement).map(input => [input.name, input.value]));
     const multipart = Object.fromEntries(fields);
     expect(multipart.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
     const submit = () => page.request.post('/cart', { multipart, headers: { Origin: 'http://127.0.0.1:3000' }, maxRedirects: 0 });

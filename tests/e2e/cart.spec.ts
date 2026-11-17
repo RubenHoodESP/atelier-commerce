@@ -64,7 +64,7 @@ test('a cross-origin form post is rejected and sets no cart cookie', async ({ pa
   const html = await (await request.get('/products/watch-001')).text();
   await page.setContent(html);
   const fields = await page.locator('form:has(input[name="productId"]) input').evaluateAll(inputs =>
-    inputs.map(input => [(input as HTMLInputElement).name, (input as HTMLInputElement).value]));
+    inputs.filter(input => input instanceof HTMLInputElement).map(input => [input.name, input.value]));
   expect(fields.some(([name]) => name.startsWith('$ACTION'))).toBe(true);
   const multipart = Object.fromEntries(fields);
   const forged = await request.post('/products/watch-001', { multipart, headers: { Origin: 'http://evil.example' }, maxRedirects: 0 });

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createServer, type Server } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import express from 'express';
-import { isOrder } from '@atelier/contracts';
+import { isOrder, isRecord } from '@atelier/contracts';
 import { createCommerceClient } from '@atelier/contracts/client';
 import { createProviderApp, productFixtures } from '../apps/mock-services/dist/app.js';
 import { createMiddlewareServer } from '../apps/middleware/dist/server.js';
@@ -17,7 +17,7 @@ async function listen(server: Server) {
 }
 async function setup(provider: express.Express = createProviderApp(), timeoutMs = 500) {
   const providerUrl = await listen(createServer(provider));
-  const apiUrl = `${await listen(await createMiddlewareServer({ providerUrl, timeoutMs }))}/api`;
+  const apiUrl = `${await listen(createMiddlewareServer({ providerUrl, timeoutMs }))}/api`;
   return { providerUrl, apiUrl, client: createCommerceClient({ baseUrl: apiUrl }) };
 }
 type Client = Awaited<ReturnType<typeof setup>>['client'];
@@ -104,8 +104,11 @@ describe('simulated order: typed client -> Express BFF -> provider', () => {
     const { providerUrl, client } = await setup();
     const key = randomUUID();
     const responses = await Promise.all([1, 2, 3].map(() => providerOrder(providerUrl, key, [{ productId: 'watch-008', quantity: 1 }])));
-    expect(responses.map(response => response.status).sort()).toEqual([200, 200, 201]);
-    const ids = new Set(await Promise.all(responses.map(async response => (await response.json() as { id: string }).id)));
+    expect(responses.map(response => response.status).sort((a, b) => a - b)).toEqual([200, 200, 201]);
+    const ids = new Set(await Promise.all(responses.map(async response => {
+      const body: unknown = await response.json();
+      return isRecord(body) ? body.id : undefined;
+    })));
     expect(ids.size).toBe(1);
     expect(await stockOf(client, 'watch-008')).toBe(0);
   });
@@ -142,7 +145,7 @@ describe('simulated order: typed client -> Express BFF -> provider', () => {
     const second = await setup();
     expect(await stockOf(first.client, 'watch-001')).toBe(0);
     expect(await stockOf(second.client, 'watch-001')).toBe(3);
-    expect(productFixtures[0]!.available_units).toBe(3);
+    expect(productFixtures[0].available_units).toBe(3);
   });
 
   it('reports a slow order write as a timeout without retrying it', async () => {
