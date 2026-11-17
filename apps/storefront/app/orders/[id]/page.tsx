@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCommerce } from '../../../lib/commerce';
 import { formatPrice } from '../../../lib/catalog';
+import { reveal } from '../../../lib/reveal';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Order confirmed | Atelier', robots: { index: false } };
@@ -25,8 +26,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { order } = result;
   return (
     <main id="main" className="intro">
-      <p className="eyebrow">ORDER CONFIRMED</p>
-      <h1>Thank you.</h1>
+      <p className="eyebrow reveal">ORDER CONFIRMED</p>
+      <h1 className="reveal" style={reveal(1)}>Thank you.</h1>
       <p>Your order is confirmed. Reference <span className="font-mono text-sm break-all">{order.id}</span>.</p>
       <ul aria-label="Order items" className="my-8 border-t border-line">
         {order.lines.map(line => (

@@ -12,6 +12,8 @@ HTTP order tests cover commerce re-pricing, stock decrement visible in catalog, 
 
 E2E uses production Next and a real BFF with an isolated controllable HTTP provider; fault controls are test-only. One worker serializes shared fixture scenarios. The catalog avoids a shared loading boundary so initial HTML works without JavaScript and unknown detail retains HTTP 404.
 
+Motion: Playwright defaults to `reducedMotion: 'reduce'` for deterministic journeys; `motion.spec.ts` re-enables motion to check the seconds sweep, hover-only card sweep, entrance, filtering during animation, absence of `opacity: 0` in server HTML and a visible no-JS entrance. See [ADR 0007](adr/0007-motion.md).
+
 ## CI
 
 Pinned Node -> npm ci -> structural checks -> lint -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint runs after structural checks. SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.

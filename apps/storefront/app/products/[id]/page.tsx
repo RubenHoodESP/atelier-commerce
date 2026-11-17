@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { catalogSearch } from '@atelier/contracts';
 import { WatchIllustration } from '../../../components/watch-illustration';
 import { AddToBag } from '../../../components/add-to-bag';
+import { reveal } from '../../../lib/reveal';
 import { normalizeCatalogSearch, formatPrice, type SearchValues } from '../../../lib/catalog';
 import { notFound } from 'next/navigation';
 import { getCommerce } from '../../../lib/commerce';
@@ -26,12 +27,12 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const price = formatPrice(product.price.amountMinor);
   return (
     <main id="main" className="product">
-      <div className="watch-panel"><WatchIllustration product={product} /></div>
+      <div className="watch-panel reveal"><WatchIllustration product={product} /></div>
       <section className="product-copy">
         <Link className="text-sm underline underline-offset-4" href={`/products${search}`}>Back to collection</Link>
-        <p className="eyebrow">THE {product.collection.toUpperCase()} COLLECTION</p>
-        <h1>{product.name}</h1>
-        <p className="price">{price}</p>
+        <p className="eyebrow reveal" style={reveal(1)}>THE {product.collection.toUpperCase()} COLLECTION</p>
+        <h1 className="reveal" style={reveal(2)}>{product.name}</h1>
+        <p className="price reveal" style={reveal(3)}>{price}</p>
         <p className="description">
           An exercise in balance. A warm dial, a considered silhouette, and room for what matters.
         </p>

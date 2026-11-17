@@ -29,6 +29,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - M2: 12 productos en Horizon/Meridian/Nocturne, catálogo SSR, filtros/ordenación URL, historial y regreso desde detalle, agotados consultables, contenido editorial por HTTP con respaldo local, Tailwind y navegación adaptable/accesible básica.
 - Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
 - M3 cortes 1–3 implementados: bolsa invitada con edición ([ADR 0005](adr/0005-guest-cart-session.md)) y pedido simulado con sección crítica síncrona e idempotencia ([ADR 0006](adr/0006-order-acceptance-idempotency.md)). Pendiente en M3: contador en la cabecera, revisión de accesibilidad del recorrido completo y cierre del hito.
+- Corte de pulido: movimiento con CSS y Motion 14.9.0 limitado a catálogo y bolsa, sin ocultar contenido sin JavaScript y con `prefers-reduced-motion` ([ADR 0007](adr/0007-motion.md)). Playwright usa movimiento reducido por defecto.
 - M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
@@ -62,7 +63,7 @@ Contratos públicos: [bff-openapi.json](../packages/contracts/bff-openapi.json).
 - Contenido editorial y catálogo se leen en paralelo. Un fallo editorial usa texto local y registra aviso seguro; un fallo comercial muestra error/reintento, sin inventar productos. Ambos módulos comparten proceso: no hay aislamiento operativo real.
 - Conservar `no-store`, tiempos de espera nuevos por petición (proveedor 1500 ms, cliente 2500 ms), ausencia de reintentos automáticos y correlación mediante `X-Request-ID`. Errores del BFF: 400/404/500/502/504, sin cuerpos privados ni stacks.
 - El listado público valida productos, total igual a la longitud e IDs únicos; una respuesta inválida no se convierte silenciosamente en resultados parciales.
-- Tailwind y su plugin PostCSS están fijados en 4.3.5; PostCSS 8.5.33. Los tokens y SVG mantienen el aspecto actual. No actualizar dependencias como parte accidental de otra tarea.
+- Tailwind y su plugin PostCSS están fijados en 4.3.5; PostCSS 8.5.33; Motion en 14.9.0. Los tokens y SVG mantienen el aspecto actual. No actualizar dependencias como parte accidental de otra tarea.
 
 ## 5. Instalación portable, ejecución y pruebas
 
