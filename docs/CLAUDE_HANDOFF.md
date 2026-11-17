@@ -22,13 +22,13 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M2 están implementados; M3 está en curso (cortes 1–3 de 4: bolsa invitada, edición y pedido simulado).**
+**M0–M3 están implementados; M4 es el siguiente hito.**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
 - M2: 12 productos en Horizon/Meridian/Nocturne, catálogo SSR, filtros/ordenación URL, historial y regreso desde detalle, agotados consultables, contenido editorial por HTTP con respaldo local, Tailwind y navegación adaptable/accesible básica.
 - Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
-- M3 cortes 1–3 implementados: bolsa invitada con edición ([ADR 0005](adr/0005-guest-cart-session.md)) y pedido simulado con sección crítica síncrona e idempotencia ([ADR 0006](adr/0006-order-acceptance-idempotency.md)). Pendiente en M3: contador en la cabecera, revisión de accesibilidad del recorrido completo y cierre del hito.
+- M3 cortes 1–3 implementados: bolsa invitada con edición ([ADR 0005](adr/0005-guest-cart-session.md)) y pedido simulado con sección crítica síncrona e idempotencia ([ADR 0006](adr/0006-order-acceptance-idempotency.md)). Corte 4: contador de la bolsa en la cabecera, `aria-current`, títulos descriptivos, contraste de controles corregido y cierre de M3 con cada criterio del plan ligado a su prueba (ver [STATUS](STATUS.md#m3-acceptance-against-plan)).
 - Corte de pulido: movimiento con CSS y Motion 14.9.0 limitado a catálogo y bolsa, sin ocultar contenido sin JavaScript y con `prefers-reduced-motion` ([ADR 0007](adr/0007-motion.md)). Playwright usa movimiento reducido por defecto. Titulares en Cormorant Garamond autoalojada con `next/font/local` ([ADR 0008](adr/0008-display-typography.md)).
 - M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
@@ -116,9 +116,9 @@ Para identificar la revisión disponible, usar `git log -1 --oneline` y `git sta
 
 El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa autorización no es una instrucción permanente de publicar futuros cambios de Claude. El entorno en la nube se publicó anteriormente; su snapshot no debe suponerse actualizado con M2 y no se modifica como parte de esta publicación. El acceso por Git funciona; la API de GitHub devolvió `Forbidden`. No asumir CI aprobada ni permisos de API a partir de una operación Git exitosa.
 
-## 7. Cómo continuar con M3
+## 7. M3 (completado) y cómo continuar
 
-Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). El corte 3 añadió la confirmación de pedido con idempotencia. Siguiente: corte 4 (contador y revisión de accesibilidad). No introducir autenticación de cuentas.
+Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). El corte 3 añadió la confirmación de pedido con idempotencia y el corte 4 cerró M3. Siguiente: M4 (herramientas de calidad reales y medidas) y M5. No introducir autenticación de cuentas.
 
 Implementado y probado en el corte 3: cantidades enteras acotadas, IDs únicos, rechazo de campos de precio/total manipulados, recálculo de precios y validación de stock por comercio. La operación simulada debe aceptar todo o rechazar todo.
 
@@ -128,4 +128,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está en curso (cortes 1–3 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está completo; M4 es el siguiente hito. Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

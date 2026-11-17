@@ -45,7 +45,7 @@ export function BagEditor({ lines, summary, subtotal }: { lines: BagLineView[]; 
                     <label htmlFor={`quantity-${line.productId}`}>Quantity<span className="sr-only"> for {line.name}</span></label>
                     <input key={line.quantity} id={`quantity-${line.productId}`} name="quantity" type="number" inputMode="numeric"
                       min={1} max={20} required defaultValue={line.quantity}
-                      className="w-20 border border-line bg-paper p-2" />
+                      className="w-20 border border-control bg-paper p-2" />
                     <button type="submit" name="intent" value="update" className="border border-ink px-4 py-2">
                       Update<span className="sr-only"> {line.name}</span>
                     </button>

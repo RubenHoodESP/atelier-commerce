@@ -36,6 +36,8 @@ export async function addToBag(_previous: AddToBagState, formData: FormData): Pr
     return { message: UNAVAILABLE };
   }
   if (!result.ok) return { message: MESSAGES[result.error.code] ?? UNAVAILABLE };
+  // Layouts persist across navigations; revalidate so the header bag count is fresh.
+  revalidatePath('/', 'layout');
   redirect('/cart');
 }
 
@@ -65,7 +67,7 @@ export async function updateBagItem(previous: UpdateBagState, formData: FormData
   } catch {
     return reply(UNAVAILABLE);
   }
-  revalidatePath('/cart');
+  revalidatePath('/', 'layout');
   if (result.ok) return quantity === 0 ? reply('Watch removed from your bag.', true) : reply('Bag updated.');
   if (result.error.code === 'OUT_OF_STOCK') return reply('That quantity is not available.');
   if (result.error.code === 'CART_NOT_FOUND' || result.error.code === 'CART_LINE_NOT_FOUND') return reply('Your bag has changed. Please review it.', true);
@@ -96,5 +98,6 @@ export async function placeOrder(_previous: PlaceOrderState, formData: FormData)
     return { message, key };
   }
   await clearCartId();
+  revalidatePath('/', 'layout');
   redirect(`/orders/${result.order.id}`);
 }

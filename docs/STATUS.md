@@ -1,10 +1,35 @@
 # Current state
 
-- **M0–M2 implemented; M3 in progress (slices 1–3 of 4: guest bag, editing and simulated orders).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M3 implemented.** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M3 slice 4: header bag count, accessibility review and closure
+
+- Header is a client `SiteHeader` with `next/link` (the layout lint exception was removed), `aria-current="page"` and a bag count read in the server layout from the commerce cart (only when the cookie exists; failures show "Bag" without a number). The link is named "Bag, N items" with the visible label first. Bag-changing Server Actions revalidate the layout. The count animates with CSS (keyed remount), not Motion.
+- Accessibility fixes: control borders now use `--color-control` #857f72 (3.59:1 / 3.19:1) instead of the decorative 1.39:1 line colour; descriptive titles for catalog and detail (`generateMetadata` with React `cache()` so detail reads the product once). Review details and remaining gaps: [QUALITY](QUALITY.md#accessibility-review-m3-slice-4).
+- Bug found and fixed: lazily loaded Motion features let a filter-triggered exit never complete, leaving stale cards (1/120 stress runs with motion). Motion features now load synchronously (0/480). Corrected bundle measurement (all JS downloaded per route, fresh context, gzip): `/` 135.6 KB, `/products/watch-001` 136.3 KB, `/products` 182.3 KB, `/cart` 181.8 KB; the earlier +18.5 KB figure omitted the lazy chunk. See [ADR 0007](adr/0007-motion.md).
+- New E2E `journey.spec.ts` (6): keyboard-only journey to a confirmed order, skip link, header count and `aria-current` (with and without JavaScript), titles, control border colour.
+- Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm run build` passed; `npm test` **85 passed in 7 files**; E2E **33 passed** with reduced motion and **33 passed** with motion enabled; stress runs 480/480 (catalog + motion specs ×20, both modes) and 110/110 (journey + motion ×10, motion). Preinstalled Chromium 153.0.8010.12 via ignored local configs.
+
+### M3 acceptance against PLAN
+
+| Criterion | Evidence |
+| --- | --- |
+| Integer, bounded quantities | Cart: `rejects quantity %j before calling the provider`, `rejects quantity %j without changing the line`; order provider rejects 0 and non-integers (`validates provider order input independently of the BFF`) |
+| Unique IDs | Cart guard rejects duplicate lines; provider rejects duplicate order items; list/cart responses with duplicates are invalid |
+| Prices and stock checked by the provider | `creates a confirmed order with commerce prices and decrements stock`; cart totals calculated by commerce; stock checked on add/increase |
+| Manipulated fields rejected | `rejects browser-supplied price or total fields instead of ignoring them`; order requests with `price`/`total`/`items` rejected with 400 |
+| Partial order rejected | `accepts all lines or none when one line lacks stock`; E2E `a bag that exceeds stock at order time is rejected without creating an order` |
+| Last unit never sold twice | `two concurrent orders cannot sell the last unit twice` (fails under an injected race, see slice 3) |
+| Same key and body → same order; other body → rejected | `returns the same order for the same key and body without decrementing again`, `concurrent requests with the same key create one order`, `rejects the same key with a different body as a conflict`; E2E double submission |
+| Slow provider → timeout, safe correlated error | `maps timeout and HTTP failure safely with correlation and no-store`, `correlates safe provider failures with public and upstream request IDs`, cart/order timeout tests |
+| Writes not retried automatically | `reports a slow provider write as a timeout and does not retry it`, `reports a slow order write as a timeout without retrying it` (exactly one upstream call) |
+| Executed checks distinguished from pending scanners | This file lists exact commands; SonarQube, Snyk, axe/Lighthouse, type-aware lint and real screen-reader testing are **not run** (M4) |
+
+Not yet done for the milestone ritual: the learner's modification without AI and the English explanation (M5).
 
 ## Polish slice: motion and display typography (between M3 slices 3 and 4)
 
@@ -64,7 +89,7 @@ The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-
 
 M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
 
-Guest bag, editing and simulated orders with idempotency (slices 1–3) are implemented; slice 4 (header count and full-journey accessibility review) remains **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+M3 is implemented (slices 1–4). Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
 
 ## Publication and handoff
 
@@ -72,4 +97,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M3 slice 4: header bag count (without making static pages dynamic unnecessarily), keyboard and screen-reader review of the full catalog → detail → bag → order journey, and M3 closure evidence (PLAN acceptance criteria checked one by one). Then M4 (type-aware lint, dependency audit including the vite/vitest picomatch advisory, scanners and measured audits).
+M4: run and record real quality tooling without claiming results in advance — type-aware lint (oxlint type-aware rules with tsgolint, compatible with TypeScript 7), dependency audit including the vite/vitest picomatch advisory, an automated accessibility audit (e.g. axe in Playwright) plus a manual screen-reader pass, SonarQube/Snyk if accounts are available, and measured performance with recorded conditions. Verify CI results for the merged M3 PRs. Then M5: five-minute demo, English explanation and a change made without AI.

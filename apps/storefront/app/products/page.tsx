@@ -8,6 +8,7 @@ import { CatalogFilters } from '../../components/catalog-filters';
 import { CatalogGrid } from '../../components/catalog-grid';
 import { reveal } from '../../lib/reveal';
 export const dynamic = 'force-dynamic';
+export const metadata = { title: 'The collection | Atelier' };
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<SearchValues> }) {
   const values = await searchParams;
   const query = normalizeCatalogSearch(values);

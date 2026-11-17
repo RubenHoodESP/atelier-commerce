@@ -4,7 +4,8 @@
   --color-panel: #e9e6dd;
   --color-ink: #25251f;
   --color-muted: #625f56;
-  --color-line: #d5d0c4;
+  --color-line: #d5d0c4; /* decorative separators only (1.39:1) */
+  --color-control: #857f72; /* form control borders: 3.59:1 on paper, 3.19:1 on panel (WCAG 1.4.11) */
   --font-sans: Arial, Helvetica, sans-serif;
   /* Cormorant Garamond via next/font (app/fonts.ts); Georgia only while it loads or if it fails. */
   --font-editorial: var(--font-display), Georgia, serif;
@@ -54,6 +55,7 @@
   .watch-seconds[data-sweep="hover"] { animation-play-state: paused; }
   .group:hover .watch-seconds[data-sweep="hover"], .group:focus-visible .watch-seconds[data-sweep="hover"] { animation-play-state: running; }
   .watch-lift { transition: transform var(--duration-hover) var(--ease-atelier); }
+  .count-lift { animation: atelier-count 250ms var(--ease-atelier) both; }
   .group:hover .watch-lift, .group:focus-visible .watch-lift { transform: translateY(-6px); }
 }
 
@@ -62,10 +64,11 @@
   to { opacity: 1; transform: none; }
 }
 @keyframes atelier-sweep { to { transform: rotate(360deg); } }
+@keyframes atelier-count { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* Respect the operating-system preference: everything is static and immediately visible. */
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .watch-seconds { animation: none; }
+  .reveal, .watch-seconds, .count-lift { animation: none; }
   .watch-lift { transition: none; }
   .group:hover .watch-lift, .group:focus-visible .watch-lift { transform: none; }
 }

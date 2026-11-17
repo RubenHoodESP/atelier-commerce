@@ -5,14 +5,20 @@ import { AddToBag } from '../../../components/add-to-bag';
 import { reveal } from '../../../lib/reveal';
 import { normalizeCatalogSearch, formatPrice, type SearchValues } from '../../../lib/catalog';
 import { notFound } from 'next/navigation';
-import { getCommerce } from '../../../lib/commerce';
+import type { Metadata } from 'next';
+import { getProductOnce } from '../../../lib/commerce';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const result = await getProductOnce((await params).id);
+  return { title: result.ok ? `${result.product.name} | Atelier` : 'Watch | Atelier' };
+}
 
 export default async function ProductPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SearchValues> }) {
   const { id } = await params;
   const search = catalogSearch(normalizeCatalogSearch(await searchParams));
-  const result = await getCommerce().getProduct({ id });
+  const result = await getProductOnce(id);
   if (!result.ok) {
     if (result.error.code === 'PRODUCT_NOT_FOUND' || result.error.code === 'INVALID_INPUT') notFound();
     return (
