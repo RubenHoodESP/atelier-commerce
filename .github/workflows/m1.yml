@@ -1,4 +1,4 @@
-name: M1 compatibility
+name: M1 product integration
 
 on:
   push:
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   compatibility:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,7 +30,19 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - name: Install official public Alokai components for compatibility probe
-        run: npm install --prefix .local/alokai-probe --no-audit --no-fund @vue-storefront/middleware@5.4.1 @vue-storefront/sdk@3.4.2
-      - name: Inspect exported public APIs
-        run: node scripts/probe-public-alokai.mjs
+      - name: Install dependencies
+        run: |
+          if test -f package-lock.json; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+            node scripts/pin-manifests.mjs
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            node scripts/export-ci-generated.mjs
+          fi
+      - run: npm run check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
