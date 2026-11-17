@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Express Integration API",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Normalized product, catalog, editorial and guest-cart REST boundary. Called by the Next server only. Orders remain planned for M3."
   },
   "servers": [
@@ -921,6 +921,213 @@
           }
         }
       }
+    },
+    "/api/carts/{id}/items/{productId}": {
+      "put": {
+        "operationId": "setCartItemQuantity",
+        "summary": "Set or remove a guest cart line",
+        "description": "Idempotent: the same quantity gives the same cart. Stock is checked only when the quantity increases; decreases and removal are always allowed. Body limit 1 KB. Not retried automatically.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^watch-[0-9]{3}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartLineUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated cart",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CART_NOT_FOUND or CART_LINE_NOT_FOUND",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OUT_OF_STOCK (increase above current stock)",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UPSTREAM_UNAVAILABLE or UPSTREAM_INVALID_RESPONSE",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "UPSTREAM_TIMEOUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1021,6 +1228,7 @@
                   "INVALID_INPUT",
                   "PRODUCT_NOT_FOUND",
                   "CART_NOT_FOUND",
+                  "CART_LINE_NOT_FOUND",
                   "OUT_OF_STOCK",
                   "CART_LIMIT_EXCEEDED",
                   "UPSTREAM_UNAVAILABLE",
@@ -1207,6 +1415,21 @@
           "quantity": {
             "type": "integer",
             "minimum": 1,
+            "maximum": 20
+          }
+        }
+      },
+      "CartLineUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quantity"
+        ],
+        "description": "Sets the quantity of an existing line; 0 removes it. Any other field makes the request invalid.",
+        "properties": {
+          "quantity": {
+            "type": "integer",
+            "minimum": 0,
             "maximum": 20
           }
         }

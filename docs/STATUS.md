@@ -1,10 +1,16 @@
 # Current state
 
-- **M0–M2 implemented; M3 in progress (slice 1 of 4: guest bag).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M2 implemented; M3 in progress (slices 1–2 of 4: guest bag with editing).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M3 slice 2: change quantity and remove lines
+
+- `/cart` lines have a quantity field (1–20) with Update and Remove submit buttons in one native form. Works without JavaScript; with JavaScript the Server Action returns a message and revalidates `/cart` without a full reload. One status region stays mounted; after a removal (including the last line) focus moves to it. Controls are not disabled while pending because an E2E test showed that disabling the focused button drops focus to `<body>`; set semantics make repeated submissions harmless.
+- BFF `PUT /api/carts/:id/items/:productId` accepts exactly `{quantity}` (0–20, 0 removes). Idempotent set semantics. Commerce checks stock only when the quantity increases (409 OUT_OF_STOCK), always allows decreases/removal, and returns 404 CART_LINE_NOT_FOUND for a line not in the cart. Both OpenAPI files document the operation. See [ADR 0005](adr/0005-guest-cart-session.md#corte-2-editar-y-eliminar-líneas).
+- Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm run build` passed; `npm test` **73 passed in 6 files** (63 + 10 set-quantity); E2E **17 passed** (15 + 2: edit/remove with focus and stock rejection; native no-JS edit/remove) with the same preinstalled Chromium 153.0.8010.12 via ignored local config. 360 px bag screenshot inspected (no horizontal scroll).
 
 ## M3 slice 1: guest bag (add to bag, view bag)
 
@@ -12,7 +18,7 @@
 - Commerce owns the cart: the fictional provider keeps bounded in-memory carts (1000, oldest evicted), issues a random cart ID, checks current stock without reserving it and calculates line totals, units and subtotal. The BFF adds `POST /api/carts`, `GET /api/carts/:id` and `POST /api/carts/:id/items`, accepts exactly `{productId, quantity}` (1 KB JSON), rejects price/total fields, maps vendor errors to CART_NOT_FOUND 404, OUT_OF_STOCK 409 and CART_LIMIT_EXCEEDED 409, and rejects inconsistent provider totals (502). Writes are never retried.
 - Next stores only the cart ID in the `atelier_cart` cookie (HttpOnly, SameSite=Lax, Secure in production). `/cart` is server-rendered per request, shows empty/error/lines states and is not share-cached. Decisions and rejected alternatives: [ADR 0005](adr/0005-guest-cart-session.md).
 - Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm test` (**63 passed in 6 files**: 47 previous + 16 cart), `npm run build` passed. `npx playwright test --config=.local/playwright.cloud.config.ts --trace off`: **15 E2E passed** (9 previous + 6 cart) with preinstalled Chromium for Testing 153.0.8010.12 via an ignored local config; the Playwright-managed browser in CI was not exercised locally. Bag and 360 px detail screenshots were inspected (no horizontal scroll).
-- Limits: carts reset on provider restart; the Secure cookie over `http://127.0.0.1` was verified only in Chromium. No quantity editing/removal, header count, orders, idempotency or concurrent stock yet. The provider OpenAPI file was re-serialized with standard 2-space JSON formatting while adding cart operations.
+- Limits: carts reset on provider restart; the Secure cookie over `http://127.0.0.1` was verified only in Chromium. No header count, orders, order idempotency or concurrent stock yet (editing added in slice 2). The provider OpenAPI file was re-serialized with standard 2-space JSON formatting while adding cart operations.
 
 ## Pre-M3 quality slice: lint, CI step and Claude Code settings
 
@@ -40,7 +46,7 @@ The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-
 
 M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
 
-Guest bag (slice 1) is implemented; quantity editing, orders, stock decrements and idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+Guest bag with editing (slices 1–2) is implemented; orders, stock decrements and order idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
 
 ## Publication and handoff
 
@@ -48,4 +54,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M3 slice 2: change line quantity and remove lines (same Server Action/BFF pattern, set-quantity semantics, 0 removes). Then slice 3: order confirmation with `Idempotency-Key`, one synchronous critical section for stock check/decrement, order creation and idempotency record, and the two-orders-for-the-last-unit test. Preserve commerce ownership of prices/stock and server-side cart ownership.
+M3 slice 3: simulated order confirmation from the bag. Provider `POST /orders` with a required `Idempotency-Key`; one synchronous critical section for re-pricing, stock check/decrement (all-or-nothing), order creation and the idempotency record; same key and body returns the same order, a different body with the same key is a 409 conflict. Prove that two concurrent confirmations cannot sell the last unit twice. Add a confirmation page. Preserve commerce ownership of prices/stock and server-side cart ownership.

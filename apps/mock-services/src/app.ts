@@ -91,6 +91,21 @@ export function createProviderApp({ products = productFixtures, content = brandF
     lines.set(product.sku, quantity);
     res.json(vendorCart(req.params.id, lines));
   });
+  // Sets an existing line; 0 removes it. Stock is checked only when the quantity increases,
+  // so a guest can always reduce or remove a line even if stock has since dropped.
+  app.put('/carts/:id/lines/:sku', express.json({ limit: '1kb' }), (req, res) => {
+    const lines = isCartId(req.params.id) ? carts.get(req.params.id) : undefined;
+    if (!lines) { rejectCart(res, 404, 'cart_not_found'); return; }
+    const body: unknown = req.body;
+    const qty = isRecord(body) ? body.qty : undefined;
+    if (!Number.isInteger(qty) || (qty as number) < 0 || (qty as number) > CART_LIMITS.maxQuantity) { rejectCart(res, 400, 'invalid_line'); return; }
+    const current = lines.get(req.params.sku);
+    if (current === undefined) { rejectCart(res, 404, 'line_not_found'); return; }
+    const product = products.find(item => item.sku === req.params.sku)!;
+    if ((qty as number) > current && (qty as number) > product.available_units) { rejectCart(res, 409, 'insufficient_stock'); return; }
+    if (qty === 0) lines.delete(req.params.sku); else lines.set(req.params.sku, qty as number);
+    res.json(vendorCart(req.params.id, lines));
+  });
   const invalidBody: ErrorRequestHandler = (_error, _req, res, _next) => { rejectCart(res, 400, 'invalid_line'); };
   app.use(invalidBody);
   return app;

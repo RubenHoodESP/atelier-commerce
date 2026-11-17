@@ -1,6 +1,6 @@
 # ADR 0005: Carrito invitado en comercio y sesión opaca
 
-Estado: aceptado para el primer corte de M3 (añadir a la bolsa y ver la bolsa). Pedidos, idempotencia y stock concurrente quedan para cortes posteriores.
+Estado: aceptado para los cortes 1 (añadir y ver la bolsa) y 2 (cambiar cantidad y eliminar líneas) de M3. Pedidos, idempotencia de pedidos y stock concurrente quedan para cortes posteriores.
 
 ## Decisión
 
@@ -18,6 +18,14 @@ Las escrituras usan una Server Action enviada por `<form action>`. Funciona sin 
 - El BFF rechaza respuestas del proveedor con totales incoherentes, IDs de línea repetidos o un identificador distinto del pedido (502).
 - Las escrituras se envían una vez. Un timeout puede ocultar una escritura aplicada; no se reintenta y el usuario puede consultar su bolsa.
 
+## Corte 2: editar y eliminar líneas
+
+- `PUT /api/carts/:id/items/:productId` con `{quantity}` exactamente, entero de 0 a 20. Fija la cantidad de una línea existente; 0 la elimina. Es idempotente: repetir la misma petición produce el mismo carrito, así que un doble envío no añade unidades.
+- Comercio solo comprueba el stock cuando la cantidad sube (409 `OUT_OF_STOCK`). Reducir o eliminar siempre se permite, aunque el stock haya bajado por debajo de lo que hay en la bolsa.
+- Modificar una línea inexistente devuelve 404 `CART_LINE_NOT_FOUND`; añadir sigue siendo la operación del corte 1.
+- En `/cart`, cada línea tiene un formulario con dos botones de envío (`intent=update` y `intent=remove`); "Remove" usa `formNoValidate` para que un número inválido no impida eliminar. Funciona sin JavaScript. Con JavaScript, la Server Action devuelve un mensaje y revalida `/cart`, sin recargar la página.
+- Una única región de estado permanece montada y anuncia el resultado. Al eliminar una línea (también la última), el foco pasa a esa región. Los controles no se deshabilitan durante el envío: una prueba E2E mostró que deshabilitar el botón enfocado mueve el foco a `<body>`, y la idempotencia hace inofensivo un envío repetido.
+
 ## Alternativas descartadas
 
 - **Carrito completo en una cookie firmada.** No necesita estado en servidor y sobrevive a reinicios, pero requiere un secreto de firma, saca el carrito de comercio y obliga a recalcular todo desde datos controlados por el cliente.
@@ -26,4 +34,4 @@ Las escrituras usan una Server Action enviada por `<form action>`. Funciona sin 
 
 ## Límites conocidos
 
-El estado en memoria se pierde al reiniciar y no es compartido entre procesos; producción necesitaría almacenamiento duradero. La cookie `Secure` sobre `http://127.0.0.1` se verificó en Chromium; otros navegadores pueden tratar de forma distinta los orígenes locales sin TLS. No hay contador en la cabecera, edición ni eliminación de líneas todavía.
+El estado en memoria se pierde al reiniciar y no es compartido entre procesos; producción necesitaría almacenamiento duradero. La cookie `Secure` sobre `http://127.0.0.1` se verificó en Chromium; otros navegadores pueden tratar de forma distinta los orígenes locales sin TLS. No hay contador en la cabecera todavía.

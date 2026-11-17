@@ -5,7 +5,7 @@ export class CommerceTransportError extends Error {
   constructor() { super('The collection service could not be reached or returned an invalid response.'); }
 }
 type ClientSettings = { baseUrl: string; timeoutMs?: number };
-type RequestOptions = { body?: unknown; method?: 'GET' | 'POST'; successStatus?: 200 | 201 };
+type RequestOptions = { body?: unknown; method?: 'GET' | 'POST' | 'PUT'; successStatus?: 200 | 201 };
 
 function transport({ baseUrl, timeoutMs = 2500 }: ClientSettings) {
   const base = new URL(baseUrl.endsWith('/') ? baseUrl : baseUrl + '/');
@@ -41,6 +41,8 @@ export function createCommerceClient(settings: ClientSettings): CommerceClient {
     getCart: ({ cartId }) => request(`carts/${encodeURIComponent(cartId)}`, isCartResult),
     addCartItem: ({ cartId }, { productId, quantity }) =>
       request(`carts/${encodeURIComponent(cartId)}/items`, isCartResult, { body: { productId, quantity } }),
+    setCartItemQuantity: ({ cartId }, { productId, quantity }) =>
+      request(`carts/${encodeURIComponent(cartId)}/items/${encodeURIComponent(productId)}`, isCartResult, { method: 'PUT', body: { quantity } }),
   };
 }
 export function createContentClient(settings: ClientSettings): ContentClient {

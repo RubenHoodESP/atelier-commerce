@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { ERROR_STATUS, type CartResult, type ProductResult } from '@atelier/contracts';
 import { getProduct, type ProviderSettings } from './product.js';
 import { getProducts, getBrandContent } from './catalog.js';
-import { addCartItem, createCart, getCart } from './cart.js';
+import { addCartItem, createCart, getCart, setCartItemQuantity } from './cart.js';
 
 export function createMiddlewareServer(settings: ProviderSettings) {
   const provider = new URL(settings.providerUrl);
@@ -64,6 +64,12 @@ export function createMiddlewareServer(settings: ProviderSettings) {
     try {
       if (Object.keys(req.query).length) { invalid(res); return; }
       send(res, await addCartItem(settings, req.params.id, req.body, res.locals.requestId));
+    } catch (error) { next(error); }
+  });
+  app.put('/api/carts/:id/items/:productId', express.json({ limit: '1kb', strict: true }), async (req, res, next) => {
+    try {
+      if (Object.keys(req.query).length) { invalid(res); return; }
+      send(res, await setCartItemQuantity(settings, req.params.id, req.params.productId, req.body, res.locals.requestId));
     } catch (error) { next(error); }
   });
   app.use((_req, res) => {
