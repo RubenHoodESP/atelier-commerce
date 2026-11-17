@@ -17,7 +17,7 @@ export function WatchIllustration({ product, decorative = false, sweep = 'always
       </g>
       {/* Starts at 7 o'clock so the static (reduced-motion) hand never hides the other hands. */}
       <g transform="rotate(210 200 240)">
-        <path className="watch-seconds" data-sweep={sweep} d="M200 255V160" stroke="#8a6926" strokeWidth="1.5" strokeLinecap="round" />
+        <path className="watch-seconds" data-sweep={sweep} d="M200 255V160" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" />
       </g>
       <circle cx="200" cy="240" r="5" fill={ink} />
       <text x="200" y="206" textAnchor="middle" fontSize="11" letterSpacing="3" fill={ink}>ATELIER</text>

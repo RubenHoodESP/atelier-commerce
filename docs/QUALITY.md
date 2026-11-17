@@ -18,6 +18,10 @@ Motion: Playwright defaults to `reducedMotion: 'reduce'` for deterministic journ
 
 Manual review of catalog → detail → bag → order plus automated E2E checks. Fixed: form-control borders used the decorative `line` color (1.39:1); they now use `--color-control` #857f72 (3.59:1 on paper, 3.19:1 on panel, WCAG 1.4.11). Catalog and detail pages now have descriptive titles (WCAG 2.4.2; Next's route announcer reads them). Header links expose `aria-current="page"`; the bag link is named "Bag, N items" with the visible label first (WCAG 2.5.3). Verified by E2E: keyboard-only journey to a confirmed order, skip link as first stop moving focus into `main`, titles, control border colour, header count with and without JavaScript. Measured palette contrast: ink/paper 13.88, muted/paper 5.75, muted/panel 5.11, button 15.41, focus ring 4.58. Not done: automated audit tooling (axe/Lighthouse) and testing with real screen readers; both belong to M4 and must not be reported as passed.
 
+## Themes
+
+`tests/theme-contrast.test.ts` reads both palettes from `globals.css` and enforces WCAG contrast (text 4.5:1; focus and control borders 3:1) plus identical dark blocks. `tests/e2e/theme.spec.ts` covers system/explicit precedence, persistence, server-rendered `data-theme`, the HttpOnly cookie, the no-JS switch and target size. See [ADR 0009](adr/0009-colour-themes.md).
+
 ## CI
 
 Pinned Node -> npm ci -> structural checks -> lint -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint runs after structural checks. SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.
