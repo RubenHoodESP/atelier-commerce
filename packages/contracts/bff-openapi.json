@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Express Integration API",
-    "version": "0.4.0",
-    "description": "Normalized product, catalog, editorial and guest-cart REST boundary. Called by the Next server only. Orders remain planned for M3."
+    "version": "0.5.0",
+    "description": "Normalized product, catalog, editorial, guest-cart and simulated-order REST boundary. Called by the Next server only."
   },
   "servers": [
     {
@@ -1128,6 +1128,392 @@
           }
         }
       }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "placeOrder",
+        "summary": "Place a simulated order from a guest cart",
+        "description": "Commerce re-prices the cart and decrements stock atomically, all lines or none. Same key and body: the original order (200). Same key with a different body: 409 IDEMPOTENCY_CONFLICT. Not retried automatically.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{16,100}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent replay of the original order",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSuccess"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Order created",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT (body, missing or invalid key)",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CART_NOT_FOUND or PRODUCT_NOT_FOUND",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OUT_OF_STOCK, CART_EMPTY or IDEMPOTENCY_CONFLICT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UPSTREAM_UNAVAILABLE or UPSTREAM_INVALID_RESPONSE",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "UPSTREAM_TIMEOUT. The outcome is unknown; resend with the SAME Idempotency-Key.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders/{id}": {
+      "get": {
+        "operationId": "getOrder",
+        "summary": "Read a simulated order",
+        "description": "The random order ID is the only access control; acceptable only because orders are fictional and hold no personal data.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ORDER_NOT_FOUND",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UPSTREAM_UNAVAILABLE or UPSTREAM_INVALID_RESPONSE",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "UPSTREAM_TIMEOUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1229,8 +1615,11 @@
                   "PRODUCT_NOT_FOUND",
                   "CART_NOT_FOUND",
                   "CART_LINE_NOT_FOUND",
+                  "ORDER_NOT_FOUND",
                   "OUT_OF_STOCK",
                   "CART_LIMIT_EXCEEDED",
+                  "CART_EMPTY",
+                  "IDEMPOTENCY_CONFLICT",
                   "UPSTREAM_UNAVAILABLE",
                   "UPSTREAM_INVALID_RESPONSE",
                   "UPSTREAM_TIMEOUT",
@@ -1431,6 +1820,74 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 20
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "lines",
+          "itemCount",
+          "total"
+        ],
+        "description": "Priced by commerce at acceptance time. itemCount and total equal the sums of the lines.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "const": "confirmed"
+          },
+          "lines": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/CartLine"
+            }
+          },
+          "itemCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          }
+        }
+      },
+      "OrderSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "order"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          }
+        }
+      },
+      "PlaceOrderInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cartId"
+        ],
+        "description": "Only the cart ID. Items are read from the commerce cart; price, total or item fields make the request invalid.",
+        "properties": {
+          "cartId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       }

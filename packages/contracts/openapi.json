@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Mock Commerce Provider",
-    "version": "0.4.0",
-    "description": "Local fictional commerce and editorial modules. Product list, detail, brand content and in-memory guest carts implemented; order POST remains planned for M3."
+    "version": "0.5.0",
+    "description": "Local fictional commerce and editorial modules: products with per-instance inventory, brand content, in-memory guest carts and simulated orders with idempotency."
   },
   "servers": [
     {
@@ -130,7 +130,7 @@
       "post": {
         "operationId": "createOrder",
         "summary": "Atomically validate server prices and stock and accept a simulated order",
-        "description": "Planned M3 operation; not implemented in M1. Same key and body return the same order. Reusing a key with another body is a conflict. In-memory state resets on restart. Product IDs must be unique within the request.",
+        "description": "Implemented in M3. Runs synchronously after body parsing: idempotency lookup, re-pricing, all-or-nothing stock check, decrement, order creation and the idempotency record, with no await in between. Same key and body return the same order (200). Reusing a key with another body is a 409 conflict; a recorded key whose order was evicted is also a conflict, never a second order. Only accepted orders are recorded. In-memory state resets on restart and is bounded. Product IDs must be unique within the request.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -409,6 +409,38 @@
           }
         }
       }
+    },
+    "/orders/{id}": {
+      "get": {
+        "operationId": "getProviderOrder",
+        "summary": "Read an accepted order",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Failure"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -603,11 +635,16 @@
         "additionalProperties": false,
         "required": [
           "productId",
+          "name",
           "quantity",
-          "unitPrice"
+          "unitPrice",
+          "lineTotal"
         ],
         "properties": {
           "productId": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           },
           "quantity": {
@@ -616,6 +653,9 @@
             "maximum": 20
           },
           "unitPrice": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "lineTotal": {
             "$ref": "#/components/schemas/Money"
           }
         }
@@ -666,7 +706,8 @@
               "PRODUCT_NOT_FOUND",
               "OUT_OF_STOCK",
               "IDEMPOTENCY_CONFLICT",
-              "INTERNAL_ERROR"
+              "INTERNAL_ERROR",
+              "ORDER_NOT_FOUND"
             ]
           },
           "message": {

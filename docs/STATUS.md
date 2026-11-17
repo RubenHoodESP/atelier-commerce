@@ -1,10 +1,18 @@
 # Current state
 
-- **M0–M2 implemented; M3 in progress (slices 1–2 of 4: guest bag with editing).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M2 implemented; M3 in progress (slices 1–3 of 4: guest bag, editing and simulated orders).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M3 slice 3: simulated order acceptance with idempotency
+
+- `/cart` has a Place order form carrying a hidden `randomUUID` idempotency key. The `placeOrder` Server Action sends `{cartId}` and `Idempotency-Key` to BFF `POST /api/orders`; the BFF reads the commerce cart and sends only IDs/quantities to provider `POST /orders`. 201 creates, 200 replays the same key and body. On failure the action returns the same key and does not revalidate, so a retry after a timeout replays instead of duplicating; editing the bag remounts the form with a new key. Success clears the cart cookie and redirects to server-rendered `/orders/[id]` (real 404 for unknown IDs).
+- The provider runs idempotency lookup, re-pricing, the all-or-nothing stock check, decrement, order creation and key recording synchronously (no await). Inventory is now per provider instance and visible in catalog/detail after orders. Same key with a different body → 409 IDEMPOTENCY_CONFLICT; a recorded key whose order was evicted is also a conflict. New public errors: ORDER_NOT_FOUND 404, CART_EMPTY 409, IDEMPOTENCY_CONFLICT 409. See [ADR 0006](adr/0006-order-acceptance-idempotency.md).
+- The E2E harness (`tests/support` only) now creates a fresh provider instance on every `/state` call so inventory never leaks between tests.
+- Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm run build` passed; `npm test` **85 passed in 7 files** (73 + 12 order); E2E **22 passed** (17 + 5 order) with preinstalled Chromium 153.0.8010.12 via ignored local config. Mutation check: injecting an `await` between stock check and decrement made both concurrency tests fail (two sales of the last unit; three orders for one key); restored code passes. Order confirmation screenshot inspected.
+- Limits: single-process guarantee only; state resets on restart; the order URL ID is the only access control (fictional, no personal data); no warning when prices change between viewing the bag and ordering.
 
 ## M3 slice 2: change quantity and remove lines
 
@@ -46,7 +54,7 @@ The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-
 
 M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
 
-Guest bag with editing (slices 1–2) is implemented; orders, stock decrements and order idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+Guest bag, editing and simulated orders with idempotency (slices 1–3) are implemented; slice 4 (header count and full-journey accessibility review) remains **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
 
 ## Publication and handoff
 
@@ -54,4 +62,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M3 slice 3: simulated order confirmation from the bag. Provider `POST /orders` with a required `Idempotency-Key`; one synchronous critical section for re-pricing, stock check/decrement (all-or-nothing), order creation and the idempotency record; same key and body returns the same order, a different body with the same key is a 409 conflict. Prove that two concurrent confirmations cannot sell the last unit twice. Add a confirmation page. Preserve commerce ownership of prices/stock and server-side cart ownership.
+M3 slice 4: header bag count (without making static pages dynamic unnecessarily), keyboard and screen-reader review of the full catalog → detail → bag → order journey, and M3 closure evidence (PLAN acceptance criteria checked one by one). Then M4 (type-aware lint, dependency audit including the vite/vitest picomatch advisory, scanners and measured audits).

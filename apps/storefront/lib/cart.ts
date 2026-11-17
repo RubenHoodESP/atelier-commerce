@@ -18,3 +18,8 @@ export async function writeCartId(cartId: string) {
     secure: process.env.NODE_ENV === 'production',
   });
 }
+
+// After an order the bag starts empty; the provider cart is left to bounded eviction.
+export async function clearCartId() {
+  (await cookies()).delete(CART_COOKIE);
+}

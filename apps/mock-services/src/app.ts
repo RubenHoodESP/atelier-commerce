@@ -1,6 +1,6 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
-import { CART_LIMITS, isCatalogQuery, isCartId, isQuantity, isRecord } from '@atelier/contracts';
+import { CART_LIMITS, isCatalogQuery, isCartId, isIdempotencyKey, isOrderId, isProductQuery, isQuantity, isRecord } from '@atelier/contracts';
 
 // Intentionally vendor-shaped: the integration must normalize it.
 export const horizonFixture = {
@@ -27,12 +27,20 @@ export const brandFixture = {
 };
 
 // Factory options support isolated tests; no public fault-injection endpoints.
-// In-memory guest carts: state belongs to one app instance and resets on restart.
-// The oldest carts are evicted beyond maxCarts so memory stays bounded.
-export function createProviderApp({ products = productFixtures, content = brandFixture, maxCarts = 1000 }: {
-  products?: typeof productFixtures; content?: typeof brandFixture; maxCarts?: number;
+// In-memory state (inventory, carts, orders, idempotency records) belongs to one app
+// instance and resets on restart. Maps are bounded: the oldest entries are evicted.
+type VendorOrder = { id: string; status: 'confirmed'; total: { amountMinor: number; currency: 'EUR' };
+  items: { productId: string; name: string; quantity: number; unitPrice: { amountMinor: number; currency: 'EUR' }; lineTotal: { amountMinor: number; currency: 'EUR' } }[] };
+function bounded<K, V>(map: Map<K, V>, max: number) { if (map.size >= max) map.delete(map.keys().next().value!); }
+
+export function createProviderApp({ products = productFixtures, content = brandFixture, maxCarts = 1000, maxOrders = 1000 }: {
+  products?: typeof productFixtures; content?: typeof brandFixture; maxCarts?: number; maxOrders?: number;
 } = {}) {
+  const stock = new Map(products.map(product => [product.sku, product.available_units]));
+  const withStock = (product: typeof productFixtures[number]) => ({ ...product, available_units: stock.get(product.sku)! });
   const carts = new Map<string, Map<string, number>>();
+  const orders = new Map<string, VendorOrder>();
+  const idempotency = new Map<string, { fingerprint: string; orderId: string }>();
   const vendorCart = (cartId: string, lines: Map<string, number>) => {
     const entries = [...lines].map(([sku, qty]) => {
       const product = products.find(item => item.sku === sku)!;
@@ -57,16 +65,16 @@ export function createProviderApp({ products = productFixtures, content = brandF
         : sort === 'name-asc' ? a.display_name.localeCompare(b.display_name, 'en') : 0;
       return primary || a.sku.localeCompare(b.sku, 'en');
     });
-    res.json({ items: productsToShow, count: productsToShow.length });
+    res.json({ items: productsToShow.map(withStock), count: productsToShow.length });
   });
   app.get('/products/:id', (req, res) => {
     const product = products.find(item => item.sku === req.params.id);
     if (!product) { res.status(404).json({ error: 'Unknown SKU' }); return; }
-    res.json(product);
+    res.json(withStock(product));
   });
   app.get('/content/brand', (_req, res) => { res.json(content); });
   app.post('/carts', (_req, res) => {
-    if (carts.size >= maxCarts) carts.delete(carts.keys().next().value!);
+    bounded(carts, maxCarts);
     const cartId = randomUUID();
     carts.set(cartId, new Map());
     res.status(201).json(vendorCart(cartId, carts.get(cartId)!));
@@ -87,7 +95,7 @@ export function createProviderApp({ products = productFixtures, content = brandF
     const quantity = (lines.get(product.sku) ?? 0) + body.qty;
     if (!lines.has(product.sku) && lines.size >= CART_LIMITS.maxLines) { rejectCart(res, 409, 'line_limit'); return; }
     if (quantity > CART_LIMITS.maxQuantity) { rejectCart(res, 409, 'quantity_limit'); return; }
-    if (quantity > product.available_units) { rejectCart(res, 409, 'insufficient_stock'); return; }
+    if (quantity > stock.get(product.sku)!) { rejectCart(res, 409, 'insufficient_stock'); return; }
     lines.set(product.sku, quantity);
     res.json(vendorCart(req.params.id, lines));
   });
@@ -102,11 +110,66 @@ export function createProviderApp({ products = productFixtures, content = brandF
     const current = lines.get(req.params.sku);
     if (current === undefined) { rejectCart(res, 404, 'line_not_found'); return; }
     const product = products.find(item => item.sku === req.params.sku)!;
-    if ((qty as number) > current && (qty as number) > product.available_units) { rejectCart(res, 409, 'insufficient_stock'); return; }
+    if ((qty as number) > current && (qty as number) > stock.get(product.sku)!) { rejectCart(res, 409, 'insufficient_stock'); return; }
     if (qty === 0) lines.delete(req.params.sku); else lines.set(req.params.sku, qty as number);
     res.json(vendorCart(req.params.id, lines));
   });
-  const invalidBody: ErrorRequestHandler = (_error, _req, res, _next) => { rejectCart(res, 400, 'invalid_line'); };
+  const orderError = (req: express.Request, res: express.Response, status: number, code: string, message: string) => {
+    res.status(status).json({ code, message, requestId: req.get('X-Request-ID') ?? 'none' });
+  };
+  // Order acceptance. Everything after body parsing is synchronous: no await between the
+  // idempotency lookup, re-pricing, the all-or-nothing stock check, the decrement, order creation
+  // and the idempotency record. Node runs this to completion before any other request, so two
+  // confirmations cannot both take the last unit. A multi-process deployment would need a
+  // durable transaction instead.
+  app.post('/orders', express.json({ limit: '2kb' }), (req, res) => {
+    const key = req.get('Idempotency-Key');
+    if (!isIdempotencyKey(key)) { orderError(req, res, 400, 'INVALID_INPUT', 'A valid Idempotency-Key header is required.'); return; }
+    const body: unknown = req.body;
+    const items = isRecord(body) && Object.keys(body).length === 1 && Array.isArray(body.items) ? body.items : null;
+    const valid = items && items.length >= 1 && items.length <= CART_LIMITS.maxLines && items.every(item =>
+      isRecord(item) && Object.keys(item).length === 2 && isProductQuery({ id: item.productId }) && isQuantity(item.quantity));
+    const lines = valid ? (items as { productId: string; quantity: number }[]) : null;
+    if (!lines || new Set(lines.map(line => line.productId)).size !== lines.length) {
+      orderError(req, res, 400, 'INVALID_INPUT', 'Order items must be unique product IDs with integer quantities.'); return;
+    }
+    const fingerprint = JSON.stringify([...lines].sort((a, b) => a.productId.localeCompare(b.productId, 'en')).map(line => [line.productId, line.quantity]));
+    const previous = idempotency.get(key);
+    if (previous) {
+      if (previous.fingerprint !== fingerprint) { orderError(req, res, 409, 'IDEMPOTENCY_CONFLICT', 'This key was already used for a different order.'); return; }
+      const replay = orders.get(previous.orderId);
+      // Never create a second order for a recorded key, even if the original was evicted.
+      if (!replay) { orderError(req, res, 409, 'IDEMPOTENCY_CONFLICT', 'This key can no longer be replayed.'); return; }
+      res.status(200).json(replay); return;
+    }
+    const priced = lines.map(line => ({ line, product: products.find(item => item.sku === line.productId) }));
+    if (priced.some(entry => !entry.product)) { orderError(req, res, 404, 'PRODUCT_NOT_FOUND', 'A product in the order does not exist.'); return; }
+    if (priced.some(({ line, product }) => line.quantity > stock.get(product!.sku)!)) {
+      orderError(req, res, 409, 'OUT_OF_STOCK', 'A selected product is no longer available in that quantity.'); return;
+    }
+    for (const { line, product } of priced) stock.set(product!.sku, stock.get(product!.sku)! - line.quantity);
+    const orderItems = priced.map(({ line, product }) => ({
+      productId: product!.sku, name: product!.display_name, quantity: line.quantity,
+      unitPrice: { amountMinor: product!.unit_price.cents, currency: 'EUR' as const },
+      lineTotal: { amountMinor: product!.unit_price.cents * line.quantity, currency: 'EUR' as const },
+    }));
+    const order: VendorOrder = { id: randomUUID(), status: 'confirmed', items: orderItems,
+      total: { amountMinor: orderItems.reduce((sum, item) => sum + item.lineTotal.amountMinor, 0), currency: 'EUR' } };
+    bounded(orders, maxOrders);
+    bounded(idempotency, maxOrders);
+    orders.set(order.id, order);
+    idempotency.set(key, { fingerprint, orderId: order.id });
+    res.status(201).json(order);
+  });
+  app.get('/orders/:id', (req, res) => {
+    const order = isOrderId(req.params.id) ? orders.get(req.params.id) : undefined;
+    if (!order) { orderError(req, res, 404, 'ORDER_NOT_FOUND', 'Order not found.'); return; }
+    res.json(order);
+  });
+  const invalidBody: ErrorRequestHandler = (_error, req, res, _next) => {
+    if (req.path === '/orders') orderError(req, res, 400, 'INVALID_INPUT', 'Invalid order body.');
+    else rejectCart(res, 400, 'invalid_line');
+  };
   app.use(invalidBody);
   return app;
 }

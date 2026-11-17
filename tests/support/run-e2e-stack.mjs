@@ -18,9 +18,12 @@ provider.use(async (req, res, next) => {
   }
   next();
 });
-provider.use(createProviderApp());
+// Each state change also starts a fresh provider instance, so inventory, carts and orders
+// never leak between tests now that orders decrement stock.
+let commerce = createProviderApp();
+provider.use((req, res, next) => commerce(req, res, next));
 const control = express(); control.use(express.json());
-control.post('/state', (req, res) => { state = req.body; res.json({ ok: true }); });
+control.post('/state', (req, res) => { state = req.body; commerce = createProviderApp(); res.json({ ok: true }); });
 const services = [createServer(provider), createMiddlewareServer({ providerUrl: 'http://127.0.0.1:4100', timeoutMs: 1500 }), createServer(control)];
 for (const [index, server] of services.entries()) await new Promise(resolve => server.listen([4100, 4000, 4199][index], '127.0.0.1', resolve));
 const next = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'start', '--hostname', '127.0.0.1', '--port', '3000'], {
