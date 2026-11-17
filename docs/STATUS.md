@@ -27,8 +27,8 @@ Cart, orders, stock writes, sessions and idempotency remain **M3**. Lint, SonarQ
 
 ## Publication and handoff
 
-M2 and the Claude handoff are prepared for publication to GitHub master. Verify publication by comparing the checkout commit with `git ls-remote origin refs/heads/master`; a local commit alone is not remote evidence. The cloud environment is outside this publication. Claude starts at [CLAUDE.md](../CLAUDE.md) and the [handoff](CLAUDE_HANDOFF.md).
+M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4e950d326c378adfea7ed229c](https://github.com/RubenHoodESP/atelier-commerce/commit/2b0eddd9be97abc4e950d326c378adfea7ed229c). The push succeeded and `git ls-remote origin refs/heads/master` matched that exact commit on 2026-11-17. A following documentation-only commit records this evidence. GitHub Actions API access returned `Forbidden`; M2 remote CI status is unverified, not passed. The cloud environment was not modified or published. Claude starts at [CLAUDE.md](../CLAUDE.md) and the [handoff](CLAUDE_HANDOFF.md).
 
 ## Next action
 
-Review the M2 diff and its [decisions](adr/0004-catalog-url-and-content.md), rehearse catalog navigation and failure cases, then implement the guest cart and simulated order acceptance. Preserve commerce ownership of prices/stock, server-side session ownership and idempotency guarantees.
+Read the Claude handoff and review the M2 [decisions](adr/0004-catalog-url-and-content.md), rehearse catalog navigation and failure cases, then implement the guest cart and simulated order acceptance. Preserve commerce ownership of prices/stock, server-side session ownership and idempotency guarantees.

@@ -107,7 +107,9 @@ M2 se validó en esta máquina con instalación limpia, chequeo estructural, tip
 
 M1 tiene un [resultado CI histórico](https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459): 19 pruebas y dos E2E. No presentarlo como CI de M2. Consultar [STATUS](STATUS.md) para evidencia más reciente.
 
-Para identificar la revisión disponible, usar `git log -1 --oneline` y `git status --short`. Antes de afirmar que está publicada, comparar el commit local con `git ls-remote origin refs/heads/master`. La base de M1 era `70687b0c1aa9b4e45816e2fd46cc6a2abf8baa13`; M2 y este relevo se publican preservando ese historial. No hacer force-push.
+M2 y este relevo se publicaron en `master` con el commit [2b0eddd9be97abc4e950d326c378adfea7ed229c](https://github.com/RubenHoodESP/atelier-commerce/commit/2b0eddd9be97abc4e950d326c378adfea7ed229c), comprobado con el SHA remoto. Un commit posterior solo registra esta evidencia. El acceso a la API de Actions devuelve `Forbidden`: CI remota de M2 no verificada.
+
+Para identificar la revisión disponible, usar `git log -1 --oneline` y `git status --short`. Antes de afirmar que está publicada, comparar el commit local con `git ls-remote origin refs/heads/master`. La base de M1 era `70687b0c1aa9b4e45816e2fd46cc6a2abf8baa13`; M2 y este relevo se publicaron preservando ese historial. No hacer force-push.
 
 El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa autorización no es una instrucción permanente de publicar futuros cambios de Claude. El entorno en la nube se publicó anteriormente; su snapshot no debe suponerse actualizado con M2 y no se modifica como parte de esta publicación. El acceso por Git funciona; la API de GitHub devolvió `Forbidden`. No asumir CI aprobada ni permisos de API a partir de una operación Git exitosa.
 

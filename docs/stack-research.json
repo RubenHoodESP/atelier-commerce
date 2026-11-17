@@ -119,6 +119,8 @@
     "tests": 47,
     "e2e": 9,
     "browser": "System Chromium 156.0.8078.79",
-    "publication": "not performed"
+    "publication": "M2 and Claude handoff published to GitHub master; cloud environment unchanged",
+    "publishedCodeCommit": "2b0eddd9be97abc4e950d326c378adfea7ed229c",
+    "remoteCI": "unverified: GitHub Actions API returned Forbidden"
   }
 }
