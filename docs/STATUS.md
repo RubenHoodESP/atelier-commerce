@@ -1,10 +1,18 @@
 # Current state
 
-- **M0–M2 implemented; M3 is next.** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M2 implemented; M3 in progress (slice 1 of 4: guest bag).** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M3 slice 1: guest bag (add to bag, view bag)
+
+- Product detail has an Add to bag Server Action form (absent when out of stock). It works without JavaScript; with JavaScript the button is disabled and status announced while pending. Success redirects to `/cart` (303); stock/limit failures render a message on the detail page.
+- Commerce owns the cart: the fictional provider keeps bounded in-memory carts (1000, oldest evicted), issues a random cart ID, checks current stock without reserving it and calculates line totals, units and subtotal. The BFF adds `POST /api/carts`, `GET /api/carts/:id` and `POST /api/carts/:id/items`, accepts exactly `{productId, quantity}` (1 KB JSON), rejects price/total fields, maps vendor errors to CART_NOT_FOUND 404, OUT_OF_STOCK 409 and CART_LIMIT_EXCEEDED 409, and rejects inconsistent provider totals (502). Writes are never retried.
+- Next stores only the cart ID in the `atelier_cart` cookie (HttpOnly, SameSite=Lax, Secure in production). `/cart` is server-rendered per request, shows empty/error/lines states and is not share-cached. Decisions and rejected alternatives: [ADR 0005](adr/0005-guest-cart-session.md).
+- Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm test` (**63 passed in 6 files**: 47 previous + 16 cart), `npm run build` passed. `npx playwright test --config=.local/playwright.cloud.config.ts --trace off`: **15 E2E passed** (9 previous + 6 cart) with preinstalled Chromium for Testing 153.0.8010.12 via an ignored local config; the Playwright-managed browser in CI was not exercised locally. Bag and 360 px detail screenshots were inspected (no horizontal scroll).
+- Limits: carts reset on provider restart; the Secure cookie over `http://127.0.0.1` was verified only in Chromium. No quantity editing/removal, header count, orders, idempotency or concurrent stock yet. The provider OpenAPI file was re-serialized with standard 2-space JSON formatting while adding cart operations.
 
 ## Pre-M3 quality slice: lint, CI step and Claude Code settings
 
@@ -32,7 +40,7 @@ The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-
 
 M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
 
-Cart, orders, stock writes, sessions and idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+Guest bag (slice 1) is implemented; quantity editing, orders, stock decrements and idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
 
 ## Publication and handoff
 
@@ -40,4 +48,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-Read the Claude handoff and review the M2 [decisions](adr/0004-catalog-url-and-content.md), rehearse catalog navigation and failure cases, then implement the guest cart and simulated order acceptance. Preserve commerce ownership of prices/stock, server-side session ownership and idempotency guarantees.
+M3 slice 2: change line quantity and remove lines (same Server Action/BFF pattern, set-quantity semantics, 0 removes). Then slice 3: order confirmation with `Idempotency-Key`, one synchronous critical section for stock check/decrement, order creation and idempotency record, and the two-orders-for-the-last-unit test. Preserve commerce ownership of prices/stock and server-side cart ownership.

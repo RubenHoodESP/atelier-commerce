@@ -1,5 +1,6 @@
-import express from 'express';
-import { isCatalogQuery } from '@atelier/contracts';
+import express, { type ErrorRequestHandler } from 'express';
+import { randomUUID } from 'node:crypto';
+import { CART_LIMITS, isCatalogQuery, isCartId, isQuantity, isRecord } from '@atelier/contracts';
 
 // Intentionally vendor-shaped: the integration must normalize it.
 export const horizonFixture = {
@@ -26,9 +27,22 @@ export const brandFixture = {
 };
 
 // Factory options support isolated tests; no public fault-injection endpoints.
-export function createProviderApp({ products = productFixtures, content = brandFixture }: {
-  products?: typeof productFixtures; content?: typeof brandFixture;
+// In-memory guest carts: state belongs to one app instance and resets on restart.
+// The oldest carts are evicted beyond maxCarts so memory stays bounded.
+export function createProviderApp({ products = productFixtures, content = brandFixture, maxCarts = 1000 }: {
+  products?: typeof productFixtures; content?: typeof brandFixture; maxCarts?: number;
 } = {}) {
+  const carts = new Map<string, Map<string, number>>();
+  const vendorCart = (cartId: string, lines: Map<string, number>) => {
+    const entries = [...lines].map(([sku, qty]) => {
+      const product = products.find(item => item.sku === sku)!;
+      return { sku, display_name: product.display_name, qty, unit_price: product.unit_price,
+        line_total: { cents: product.unit_price.cents * qty, currency_code: product.unit_price.currency_code } };
+    });
+    return { cart_id: cartId, entries, total_units: entries.reduce((sum, entry) => sum + entry.qty, 0),
+      subtotal: { cents: entries.reduce((sum, entry) => sum + entry.line_total.cents, 0), currency_code: 'EUR' } };
+  };
+  const rejectCart = (res: express.Response, status: number, code: string) => { res.status(status).json({ error: code, code }); };
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
@@ -51,5 +65,33 @@ export function createProviderApp({ products = productFixtures, content = brandF
     res.json(product);
   });
   app.get('/content/brand', (_req, res) => { res.json(content); });
+  app.post('/carts', (_req, res) => {
+    if (carts.size >= maxCarts) carts.delete(carts.keys().next().value!);
+    const cartId = randomUUID();
+    carts.set(cartId, new Map());
+    res.status(201).json(vendorCart(cartId, carts.get(cartId)!));
+  });
+  app.get('/carts/:id', (req, res) => {
+    const lines = isCartId(req.params.id) ? carts.get(req.params.id) : undefined;
+    if (!lines) { rejectCart(res, 404, 'cart_not_found'); return; }
+    res.json(vendorCart(req.params.id, lines));
+  });
+  // Stock is checked but not reserved; order acceptance must check it again.
+  app.post('/carts/:id/lines', express.json({ limit: '1kb' }), (req, res) => {
+    const lines = isCartId(req.params.id) ? carts.get(req.params.id) : undefined;
+    if (!lines) { rejectCart(res, 404, 'cart_not_found'); return; }
+    const body: unknown = req.body;
+    if (!isRecord(body) || typeof body.sku !== 'string' || !isQuantity(body.qty)) { rejectCart(res, 400, 'invalid_line'); return; }
+    const product = products.find(item => item.sku === body.sku);
+    if (!product) { rejectCart(res, 404, 'unknown_sku'); return; }
+    const quantity = (lines.get(product.sku) ?? 0) + body.qty;
+    if (!lines.has(product.sku) && lines.size >= CART_LIMITS.maxLines) { rejectCart(res, 409, 'line_limit'); return; }
+    if (quantity > CART_LIMITS.maxQuantity) { rejectCart(res, 409, 'quantity_limit'); return; }
+    if (quantity > product.available_units) { rejectCart(res, 409, 'insufficient_stock'); return; }
+    lines.set(product.sku, quantity);
+    res.json(vendorCart(req.params.id, lines));
+  });
+  const invalidBody: ErrorRequestHandler = (_error, _req, res, _next) => { rejectCart(res, 400, 'invalid_line'); };
+  app.use(invalidBody);
   return app;
 }
