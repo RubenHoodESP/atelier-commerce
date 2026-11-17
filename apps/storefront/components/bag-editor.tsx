@@ -1,6 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { useActionState, useEffect, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
+import { MotionScope } from './motion-scope';
 import { updateBagItem } from '../app/cart/actions';
 
 export type BagLineView = { productId: string; name: string; quantity: number; unitPrice: string; lineTotal: string };
@@ -16,7 +19,7 @@ export function BagEditor({ lines, summary, subtotal }: { lines: BagLineView[]; 
     if (state?.focusStatus) statusRef.current?.focus();
   }, [state]);
   return (
-    <>
+    <MotionScope>
       <p ref={statusRef} tabIndex={-1} role="status" className="min-h-6 outline-none">
         {pending ? 'Updating your bag…' : state?.message ?? ''}
       </p>
@@ -29,8 +32,11 @@ export function BagEditor({ lines, summary, subtotal }: { lines: BagLineView[]; 
         <>
           <p>{summary}</p>
           <ul aria-label="Bag items" aria-busy={pending} className="my-8 border-t border-line">
+            {/* Removed lines fold away; initial={false} keeps server HTML visible without JavaScript. */}
+            <AnimatePresence initial={false}>
             {lines.map(line => (
-              <li key={line.productId} className="grid gap-3 border-b border-line py-5 sm:grid-cols-[1fr_auto] sm:items-center">
+              <m.li key={line.productId} layout="position" exit={{ opacity: 0, height: 0, paddingTop: 0, paddingBottom: 0 }}
+                className="grid gap-3 overflow-hidden border-b border-line py-5 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div className="grid gap-2">
                   <Link className="underline underline-offset-4" href={`/products/${line.productId}`}>{line.name}</Link>
                   <p className="text-sm text-muted">{line.unitPrice} each</p>
@@ -49,14 +55,19 @@ export function BagEditor({ lines, summary, subtotal }: { lines: BagLineView[]; 
                   </form>
                 </div>
                 <p aria-label={`Line total for ${line.name}`}>{line.lineTotal}</p>
-              </li>
+              </m.li>
             ))}
+            </AnimatePresence>
           </ul>
           <dl className="flex justify-between gap-4 text-lg">
-            <dt>Subtotal</dt><dd data-testid="bag-subtotal">{subtotal}</dd>
+            <dt>Subtotal</dt>
+            <AnimatePresence initial={false} mode="wait">
+              <m.dd key={subtotal} data-testid="bag-subtotal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}>{subtotal}</m.dd>
+            </AnimatePresence>
           </dl>
         </>
       )}
-    </>
+    </MotionScope>
   );
 }

@@ -1,5 +1,6 @@
 import type { Product } from '@atelier/contracts';
-export function WatchIllustration({ product, decorative = false }: { product: Product; decorative?: boolean }) {
+// sweep: 'always' animates the seconds hand (detail page); 'hover' runs it only while a card is hovered or focused.
+export function WatchIllustration({ product, decorative = false, sweep = 'always' }: { product: Product; decorative?: boolean; sweep?: 'always' | 'hover' }) {
   const dial = product.collection === 'Nocturne' ? '#303743' : product.collection === 'Meridian' ? '#c4c9c6' : '#eee9dd';
   const ink = product.collection === 'Nocturne' ? '#eee9dd' : '#524c3e';
   return (
@@ -13,6 +14,10 @@ export function WatchIllustration({ product, decorative = false }: { product: Pr
       <g stroke={ink} strokeWidth="2">
         <path d="M200 155v12m0 146v12m-85-85h12m146 0h12" />
         <path d="M200 240v-55m0 55l42 25" strokeWidth="4" />
+      </g>
+      {/* Starts at 7 o'clock so the static (reduced-motion) hand never hides the other hands. */}
+      <g transform="rotate(210 200 240)">
+        <path className="watch-seconds" data-sweep={sweep} d="M200 255V160" stroke="#8a6926" strokeWidth="1.5" strokeLinecap="round" />
       </g>
       <circle cx="200" cy="240" r="5" fill={ink} />
       <text x="200" y="206" textAnchor="middle" fontSize="11" letterSpacing="3" fill={ink}>ATELIER</text>
