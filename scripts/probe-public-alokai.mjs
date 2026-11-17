@@ -16,7 +16,7 @@ for (const name of ['@vue-storefront/middleware', '@vue-storefront/sdk']) {
       if (e.isDirectory() && e.name !== 'node_modules') inspect(path);
       else if (e.name.endsWith('.d.ts')) {
         const text = readFileSync(path, 'utf8');
-        if (/apiClientFactory|createServer|middlewareModule|initSDK|buildModule/.test(text)) {
+        if ((name.includes('middleware') && /types\.d\.ts$/.test(e.name)) || /apiClientFactory|createServer/.test(text)) {
           console.log('ALOKAI_TYPES', path.slice(root.length));
           console.log(text.slice(0, 24000));
         }
@@ -24,4 +24,11 @@ for (const name of ['@vue-storefront/middleware', '@vue-storefront/sdk']) {
     }
   }
   inspect(root);
+  if (name.includes('middleware')) {
+    const source = readFileSync(entry, 'utf8');
+    for (const needle of ['function createServer', 'integration.location', 'errorHandler(', 'extendApp']) {
+      const index = source.indexOf(needle);
+      console.log('ALOKAI_SOURCE', needle, index >= 0 ? source.slice(Math.max(0, index - 250), index + 2200) : 'not found');
+    }
+  }
 }
