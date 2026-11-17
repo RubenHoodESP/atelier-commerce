@@ -2,15 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { isRecord, isProduct, isProductQuery, type ProductResult, type ErrorCode } from '@atelier/contracts';
 
 export type ProviderSettings = { providerUrl: string; timeoutMs: number };
-export type ProductContext = { config: ProviderSettings };
-
-export async function getProduct(context: ProductContext, query: unknown): Promise<ProductResult> {
-  const requestId = randomUUID();
+export async function getProduct(settings: ProviderSettings, query: unknown, requestId = randomUUID()): Promise<ProductResult> {
   const failure = (code: ErrorCode, message: string): ProductResult => ({ ok: false, error: { code, message, requestId } });
   if (!isProductQuery(query)) return failure('INVALID_INPUT', 'A valid product identifier is required.');
   try {
-    const response = await fetch(new URL(`/products/${encodeURIComponent(query.id)}`, context.config.providerUrl), {
-      signal: AbortSignal.timeout(context.config.timeoutMs), headers: { 'X-Request-ID': requestId }, cache: 'no-store',
+    const response = await fetch(new URL(`/products/${encodeURIComponent(query.id)}`, settings.providerUrl), {
+      signal: AbortSignal.timeout(settings.timeoutMs), headers: { 'X-Request-ID': requestId }, cache: 'no-store',
     });
     if (response.status === 404) return failure('PRODUCT_NOT_FOUND', 'Product not found.');
     if (!response.ok) return failure('UPSTREAM_UNAVAILABLE', 'The product service is unavailable.');

@@ -1,28 +1,27 @@
-# Interview evidence to build
+# Interview preparation
 
-M1 now provides a real public Alokai product slice. The broader table remains a checklist; cart, orders, current Connect APIs and audits are still pending.
+M1 provides a real Express BFF product slice; cart/orders, catalog and audits remain future work.
 
-## M1 rehearsal
+## Rehearse M1
 
-1. Run `npm ci` and `npm run dev`; open `/products/watch-001`, then `/products/watch-999`.
-2. Trace the request through the Server Component, server-only SDK, `integration.cts`, product adapter and vendor fixture. Explain why provider data differs from the domain contract.
-3. Explain runtime validation versus TypeScript, integer cents, no-store reads, bounded provider calls and business versus infrastructure failures. Demonstrate a failure using the relevant integration test.
-4. Explain the public SDK Proxy: returning its module directly from an async helper causes Promise resolution to call a generated `then` endpoint. The test helper returns a plain wrapper instead. Never suppress the resulting rejection.
-5. Without AI, change the fixture's cents to 125099 and predict the displayed price. Run the focused integration/browser tests, update expected business evidence deliberately, then restore the fixture. Identify which assertions should catch the change.
+1. Run npm.cmd ci and npm.cmd run dev; open /products/watch-001 and /products/watch-999.
+2. Trace the Server Component -> server-only configuration -> typed fetch client -> Express route -> product adapter -> vendor fixture. Explain each trust boundary.
+3. Explain runtime JSON validation versus TypeScript, integer cents, no-store, fresh per-request timeouts, HTTP status mapping and business versus infrastructure failures.
+4. Show a provider 503 or timeout integration test. Explain why raw bodies/stacks are hidden and how X-Request-ID correlates requests.
+5. Without AI, change the fixture price to 125099 cents, predict the display, inspect the affected assertions, then restore it. Explain which checks should catch the change.
 
-English explanation: “The page renders on the server and calls a typed SDK boundary. A custom Alokai integration validates input, calls a vendor-shaped HTTP API and normalizes its result. Provider failures are bounded and safe. We use the official older public SDK and middleware; current Connect requires credentials, so I would not claim that migration is already tested.”
+English demo: “The page renders on the server and calls a typed REST boundary. Our Express BFF validates input, calls a vendor-shaped HTTP API and normalizes its result. The provider owns prices and stock. Calls are bounded, failures have safe HTTP statuses and request IDs, and the client validates JSON at runtime. External services are simulated locally.”
 
-## Evidence to extend
+## Extend the evidence
 
-| Topic | Evidence to prepare | Follow-up to rehearse |
+| Topic | Evidence | Follow-up |
 | --- | --- | --- |
-| Next/React | Server-rendered product + small interactive cart | Why this server/client boundary? What reaches the browser? |
-| Alokai | Real SDK method -> custom integration -> provider | Which code belongs to Alokai, and which did you write? |
-| Express | Validation/error handling and provider routes | What happens if middleware does not respond or call next? |
-| Composable architecture | Independent commerce/content adapters | Cost of another boundary? How would a provider change affect UI? |
-| Testing | Price, stock race, idempotency and provider failure tests | Which defects could these tests miss? |
-| Performance | Measured before/after for one change | Cache invalidation? Private-data leaks? Measurement conditions? |
-| Security | Server pricing, input boundaries and secret placement | Why does a hidden button not provide authorization? |
-| Collaboration | Small commits and short ADRs | What did you simplify and what would need redesign for production? |
+| Next/React | Product SSR, future interactive cart | What runs on the server/client? |
+| Express/APIs | REST statuses, validation, provider adapter | What happens if a handler never responds? |
+| Architecture | Independent provider contract and domain DTO | What changes when the provider changes? |
+| Testing | Real HTTP boundary, contract and client checks | Which defects can these tests miss? |
+| Business | Future price, stock race and idempotency tests | Who owns the transaction? |
+| Performance | Future measured production comparison | Cache invalidation and measurement conditions? |
+| Security | Server configuration, runtime guards, future ownership | Why does hiding a UI control not authorize a write? |
 
-For each feature explain: need -> constraints -> alternatives -> choice -> implementation -> verification -> limitations. Practise a five-minute English demo and a small unassisted change (add a filter, debug a timeout, alter a stock rule). Identify where AI helped and how you checked its output. Never describe a mock or a planned milestone as a production integration.
+Explain need -> constraints -> alternatives -> choice -> verification -> limitations. Identify how AI helped and how its output was checked. Describe this as an Express integration exercise with fictional providers.

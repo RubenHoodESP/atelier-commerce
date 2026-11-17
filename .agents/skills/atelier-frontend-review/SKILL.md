@@ -5,7 +5,7 @@ description: Build or review Atelier Commerce React and Next.js UI changes with 
 
 # Frontend work
 
-Read the changed feature and its acceptance criteria. Keep product data loading server-side when appropriate; add Client Components for necessary interaction. Prevent server-only SDK configuration and credentials from entering client bundles.
+Read the changed feature and its acceptance criteria. Keep product data loading server-side when appropriate; add Client Components for necessary interaction. Prevent server-only API configuration and credentials from entering client bundles.
 
 Represent shareable catalog filters in the URL. Derive values rather than duplicating state in effects. Avoid shared mutable cart state on the server. Define cache behavior explicitly; never share-cache guest-specific data.
 

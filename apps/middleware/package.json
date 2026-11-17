@@ -9,8 +9,6 @@
   },
   "dependencies": {
     "@atelier/contracts": "0.1.0",
-    "@vue-storefront/middleware": "5.4.1",
-    "express": "4.22.3",
-    "body-parser": "1.20.9"
+    "express": "4.22.3"
   }
 }

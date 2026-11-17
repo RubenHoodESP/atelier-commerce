@@ -4,6 +4,6 @@ const server = await createMiddlewareServer({
   timeoutMs: Number(process.env.PROVIDER_TIMEOUT_MS ?? 1500),
 });
 const port = Number(process.env.MIDDLEWARE_PORT ?? 4000);
-server.listen(port, '127.0.0.1', () => console.log(`Alokai middleware on ${port}`));
+server.listen(port, '127.0.0.1', () => console.log(`Express BFF on ${port}`));
 process.once('SIGTERM', () => server.close());
 process.once('SIGINT', () => server.close());

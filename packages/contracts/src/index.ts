@@ -3,11 +3,29 @@ export type Product = {
   price: { amountMinor: number; currency: 'EUR' }; stock: number;
 };
 export type ProductQuery = { id: string };
-export type ErrorCode = 'INVALID_INPUT' | 'PRODUCT_NOT_FOUND' | 'UPSTREAM_TIMEOUT' | 'UPSTREAM_UNAVAILABLE' | 'UPSTREAM_INVALID_RESPONSE';
+export const ERROR_STATUS = {
+  INVALID_INPUT: 400,
+  PRODUCT_NOT_FOUND: 404,
+  UPSTREAM_TIMEOUT: 504,
+  UPSTREAM_UNAVAILABLE: 502,
+  UPSTREAM_INVALID_RESPONSE: 502,
+  INTERNAL_ERROR: 500,
+} as const;
+export type ErrorCode = keyof typeof ERROR_STATUS;
 export type ProductResult =
   | { ok: true; product: Product }
   | { ok: false; error: { code: ErrorCode; message: string; requestId: string } };
-export type CommerceEndpoints = { getProduct: (query: ProductQuery) => Promise<ProductResult> };
+export type CommerceClient = { getProduct: (query: ProductQuery) => Promise<ProductResult> };
+
+export function isProductResult(value: unknown): value is ProductResult {
+  if (!isRecord(value)) return false;
+  if (value.ok === true) return isProduct(value.product);
+  if (value.ok !== false || !isRecord(value.error)) return false;
+  return typeof value.error.code === 'string'
+    && Object.hasOwn(ERROR_STATUS, value.error.code)
+    && typeof value.error.message === 'string' && value.error.message.length > 0
+    && typeof value.error.requestId === 'string' && value.error.requestId.length > 0;
+}
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);

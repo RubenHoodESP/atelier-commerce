@@ -1,69 +1,30 @@
 # Plan de desarrollo
 
-## Objetivo y alcance
+## Objetivo
 
-Preparar una entrevista de front-end orientada a Next/React, middleware de APIs, Alokai y e-commerce. Construir una demo pequeña y defendible: comprender el flujo, justificar decisiones, probar fallos y modificarlo sin depender de generación automática.
+Preparar entrevistas de frontend senior con una pequeña tienda de relojes que permita explicar arquitectura, integración de APIs, reglas de negocio, testing y calidad. La integración se implementa con Express y un cliente REST tipado propio. No requiere una cuenta de proveedor de integración.
 
-El MVP incluye 8-12 relojes ficticios, catálogo con filtros en la URL, ficha, carrito invitado y confirmación simulada. Moneda única EUR, importes enteros en céntimos. Catálogo/contenidos simulados localmente y claramente identificados. El carrito enviado contiene identificadores y cantidades; el proveedor calcula importes y valida stock al confirmar.
+El MVP tendrá 8–12 relojes ficticios, catálogo con filtros en la URL, ficha, carrito invitado y confirmación simulada. EUR e importes enteros en céntimos. El proveedor posee precios y stock; el navegador envía únicamente IDs y cantidades. Quedan fuera pagos reales, cuentas, datos personales, envíos, descuentos, multimoneda y despliegue empresarial.
 
-El MVP deja fuera cuentas, pagos reales, datos personales, envíos, descuentos, administración, multimoneda y despliegue empresarial. Vue es una alternativa de ecosistema; implementamos React. Jira/Confluence se practican mediante historias y documentación exportables, sin depender de cuentas externas.
+## Hitos y cierre
 
-## Orden y criterios de cierre
+| Hito | Trabajo | Evidencia |
+| --- | --- | --- |
+| M0 | Arquitectura, contratos y flujos de trabajo | Documentos coherentes y checks estructurales |
+| M1 | Next -> cliente REST -> Express -> proveedor | Lockfile generado, typecheck, build, contratos, pruebas HTTP y E2E |
+| M2 | Catálogo, filtros/ordenación URL, contenido y Tailwind | Estados de carga/error/vacío, móvil y teclado; navegación conserva filtros |
+| M3 | Carrito y pedido simulado | Cantidades válidas, precios recalculados, stock e idempotencia probados |
+| M4 | Calidad y riesgos | CI completa, lint, auditorías y escáneres realmente ejecutados |
+| M5 | Ensayo de entrevista | Demo de cinco minutos, explicación en inglés y un cambio sin IA |
 
-Las horas son estimaciones de trabajo concentrado, no fechas comprometidas. Ajustar según la entrevista. No empezar por la apariencia antes de demostrar la integración principal.
+M1 mantiene la ficha SSR y sustituye el transporte externo por Express. El estado y los resultados exactos están en [STATUS](STATUS.md). La decisión está en [ADR 0003](adr/0003-express-bff.md). Las pruebas se amplían junto a M2/M3, sin esperar a M4.
 
-| Hito | Trabajo | Evidencia para cerrarlo | Esfuerzo orientativo |
-| --- | --- | --- | --- |
-| M0 | Investigación, arquitectura, plan, contratos propuestos y flujos de trabajo | Documentos coherentes, validación de base y commit local | Preparado en este commit |
-| M1 | Verificar acceso a Alokai; instalar versiones estables compatibles; configurar workspaces; devolver un producto por el SDK | Node fijado, lockfile generado, typecheck/build y una prueba real Next -> Alokai -> proveedor | 3-5 h, condicionado por acceso |
-| M2 | Catálogo y ficha; adaptación de datos; contenido de marca; diseño responsive | Datos reales del proveedor simulado, estados de carga/error/vacío; navegación por teclado | 4-6 h |
-| M3 | Carrito y pedido simulado; validación y recálculo en servidor | Añadir/cambiar cantidades, rechazo de producto agotado y precio manipulado | 4-6 h |
-| M4 | Pruebas de riesgos; CI; seguridad, rendimiento y accesibilidad | Checks reproducibles, prueba de fallo de proveedor y recorrido E2E sobre build de producción | 3-5 h |
-| M5 | Ensayo de entrevista y documentación de límites | Demo de 5 min y explicación en inglés de arquitectura, pruebas y una decisión alternativa | 1-2 h |
+## Criterios de aceptación
 
-## M1: tareas y resultado
+- Catálogo: colección y orden en la URL; recarga/atrás conservan selección; errores permiten reintentar; vacío permite retirar filtros.
+- Producto: datos normalizados, contenido principal en HTML inicial, precio exacto con céntimos, disponibilidad y 404 real para IDs desconocidos.
+- Pedido: cantidades enteras, IDs únicos, precios/stock comprobados por el proveedor; rechazo de campos manipulados y pedido parcial.
+- Concurrencia: dos confirmaciones no venden la misma última unidad. Misma clave/carga devuelve el mismo pedido; otra carga con esa clave se rechaza.
+- Calidad: proveedor lento alcanza timeout; error seguro y correlacionado; escrituras sin reintentos automáticos; distinguir checks ejecutados de escáneres pendientes.
 
-1. Instalar/seleccionar Node 22.23.5 sin sustituir globalmente otros entornos.
-2. Comprobar la disponibilidad y licencia de `@alokai/connect@2.5.2`. Confirmar sus exports `/sdk`, `/middleware` y `/integration-kit`, engines, dependencias y peer dependencies.
-3. Comprobar TypeScript 7.0.2 con Next 16.4.6 y las herramientas de pruebas. Revisar compatibilidad con su API de compilador; usar una versión estable anterior solo si se demuestra un conflicto y registrar la decisión.
-4. Instalar las dependencias de la primera conexión y generar un lockfile real; no fabricar el lockfile ni ocultar conflictos de peers.
-5. Crear el proveedor local de catálogo y un producto fixture con un formato distinto al contrato público.
-6. Crear una integración de Alokai que consulte el proveedor y normalice su respuesta. Configurar URL del proveedor desde variables de entorno del servidor.
-7. Inicializar el SDK de Alokai en una capa de acceso a datos de Next. Mostrar el producto en un Server Component.
-8. Ejecutar build/typecheck y una comprobación de integración. Guardar comandos, versiones resueltas y resultado en `docs/STATUS.md`.
-
-Resultado M1: Connect 2.5.2 requiere credenciales no disponibles. Se ha elegido de forma explícita una integración real con los componentes públicos oficiales SDK 3.4.2 y middleware 5.4.1; no equivale a Connect actual. La instalación reproducible, typecheck, build, 8 pruebas de contrato/integración y 2 E2E han pasado en Node 22.23.5. Véanse [ADR 0003](adr/0003-public-alokai-integration.md) y [evidencia](STATUS.md). La migración a Connect sigue pendiente de acceso.
-
-## Historias y criterios de aceptación
-
-### P1: consultar catálogo
-
-- Como visitante, filtrar por colección y ordenar por precio.
-- La URL conserva filtros al recargar y usar atrás/adelante.
-- Los errores ofrecen reintento; la lista vacía explica cómo retirar filtros.
-- El contrato expone datos normalizados, sin URLs internas o credenciales.
-
-### P2: consultar producto
-
-- Una URL desconocida muestra una página 404.
-- La ficha muestra nombre, precio formateado, características y disponibilidad.
-- El contenido principal es accesible sin esperar a JavaScript del cliente.
-
-### P3: confirmar carrito
-
-- Las cantidades son enteras dentro del límite definido en el contrato.
-- El servidor consulta sus precios y stock al confirmar, sin aceptar totales del cliente.
-- Un artículo agotado devuelve un error de negocio y no crea un pedido parcial.
-- Dos confirmaciones competidoras no venden la misma última unidad.
-- Repetir una confirmación con la misma clave de idempotencia devuelve el mismo pedido; otra carga con la misma clave se rechaza.
-
-### P4: fallos y calidad
-
-- Un proveedor lento alcanza un límite de tiempo y devuelve un error normalizado.
-- No se reintenta una escritura sin una garantía de idempotencia.
-- Hay una prueba para precio manipulado, agotado, idempotencia y fallo de proveedor.
-- CI distingue comprobaciones ejecutadas de escáneres pendientes de credenciales.
-
-## Forma de aprendizaje
-
-En cada hito: explicar el recorrido; proponer una solución; implementar un cambio pequeño; revisar errores y alternativas; ensayar una pregunta de entrevista. Reservar práctica sin IA para leer, depurar y modificar la funcionalidad. La velocidad de generación no es el criterio de cierre.
+En cada hito: recorrer la petición, explicar restricciones y alternativas, implementar, probar fallos y ensayar una modificación sin IA. La generación rápida de código no sustituye comprenderlo.

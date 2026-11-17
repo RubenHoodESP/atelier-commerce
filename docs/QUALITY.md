@@ -1,41 +1,30 @@
 # Verification and operational quality
 
-## Current checks
+## Current coverage
 
-`npm run check` checks repository consistency, local documentation links, JSON, skill metadata/budgets, recorded lockfile versions and contract examples. These structural checks are separate from `npm run typecheck`, `npm test`, `npm run build` and `npm run test:e2e`.
+- npm run check: JSON, local links, skills, recorded versions and contract invariants.
+- npm run typecheck and npm run build: shared package, services and Next compilation.
+- npm test: both OpenAPI 3.1 documents, domain guards, typed-client invalid JSON/status/redaction/timeout tests and real client -> Express -> HTTP provider tests.
+- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. No E2E cart/order coverage exists yet.
 
-M1 has 8 Vitest checks: full OpenAPI 3.1 validation, runtime guards and 6 tests through the real public Alokai SDK/middleware over HTTP. They cover normalization, unknown ID, rejected input, upstream 503/redaction, malformed data and timeout. Two Chromium tests run against production Next/middleware/provider processes: initial HTML/navigation/price/stock and an actual HTTP 404. They are not evidence of cart/order correctness. See [STATUS](STATUS.md).
+HTTP tests exercise normalization, missing/invalid identifiers, upstream failures, malformed responses, timeout, unexpected queries, request-ID propagation and malformed URL encoding. Test-only fixtures control failures. Do not replace these tests with mocks merely because an execution environment blocks loopback networking. See [STATUS](STATUS.md) for actual results.
 
-## Implementation test strategy
+## CI
 
-| Risk | Verification | Expected evidence |
-| --- | --- | --- |
-| Client manipulates price | Provider integration test sends an extra price/total; reject it and verify server-priced valid order | Exact charged cents from server fixture |
-| Last unit sold twice | Two order submissions against isolated fixture | One succeeds, one 409, stock never negative |
-| Confirmation repeated | Same idempotency key/body twice, then different body | Same order returned; different body 409 |
-| Bad quantity/product | Boundary cases and unknown ID | 400/404, no inventory mutation |
-| Provider times out/fails | Controlled local provider fixture; implemented in M1 | Typed RPC failure, request ID, no raw body; REST 504/502 mapping is future work |
-| UI/URL drifts | Component + integration tests | Filters survive navigation; cart updates are announced |
-| User cannot buy via keyboard | Playwright keyboard journey + manual focus check | Catalog -> detail -> cart -> confirmation |
-| Server rendering breaks | Next production build + E2E | Product HTML present, hydration clean |
+Pinned Node -> npm ci -> structural checks -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint, SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.
 
-Use Vitest for domain functions and adapters; add React Testing Library when meaningful Client Component behavior exists; use Playwright for full journeys and async Server Components. Avoid internal hook assertions and broad snapshots. Use deterministic fixtures and reset them between tests. Swagger Parser now validates the entire OpenAPI document; structural checks alone do not replace it.
+## Risks for later milestones
 
-## CI progression
+| Risk | Verification |
+| --- | --- |
+| Manipulated price | Reject price/total fields; valid order charged in exact server-owned cents |
+| Overselling | Concurrent last-unit orders: one success, stock never negative |
+| Duplicate confirmation | Same key/body returns same order; changed body conflicts |
+| Invalid quantities | Boundary cases reject without inventory mutation |
+| URL/UI drift | Filters survive reload and navigation |
+| Inaccessible journey | Keyboard catalog -> detail -> cart -> confirmation; focus and announcements |
+| Slow/failed provider | Stable 502/504, safe envelope and correlation ID |
 
-M0 retains its dependency-free foundation check. M1 runs pinned Node -> npm ci -> structural checks -> typecheck -> Vitest -> production build -> Chromium installation -> Playwright against production servers. Integration and browser steps have explicit time limits. Lint and scanners remain pending; M4 expands quality coverage and audits. Playwright captures traces on failure; keep future uploaded artifacts bounded with a short retention period.
+Use meaningful behavior tests and deterministic fixtures; add component testing when interactive Client Components need it. Never share-cache private responses. Runtime-validate JSON, keep addresses/secrets server-only, and implement origin/session ownership for future mutations. Bound input size/counts and upstream calls.
 
-Configure SonarQube and Snyk only with approved account/project access. Read secrets from GitHub Actions secrets; never write tokens into YAML or publish scanner reports containing credentials. A skipped scan is a skipped scan. Add dependency review after an actual lockfile exists. No arbitrary coverage percentage as a proxy for quality.
-
-## Security, accessibility and performance
-
-- Runtime-validate untrusted bodies and provider responses. TypeScript does not validate JSON at runtime.
-- Keep secrets server-only; avoid broad CORS. Verify mutation origin, guest ownership, HttpOnly cookies and bounded inputs.
-- Request only IDs/quantities for orders. Calculate money in integer cents server-side and atomically accept orders.
-- Use semantic landmarks, labelled controls, visible focus, image alternatives and an announced cart status.
-- Measure baseline production LCP/CLS/INP or lab proxies with conditions recorded before claiming improvements. Do not benchmark dev mode or invent a score.
-- Explicitly cache public catalog data, never private carts/orders. Bound provider timeouts and log correlation IDs.
-
-## Demo limitations
-
-In-memory state is single-process and resets at restart. There are no real payments, tax/shipping engine or production identity controls. Fixtures emulate separate commercial services. Deployment-grade distributed consistency is out of scope; explain its required changes in the interview.
+Measure production performance with conditions recorded before claiming improvements. The demo has fictional providers, no payment/auth/persistent orders, and no deployment-grade distributed consistency.

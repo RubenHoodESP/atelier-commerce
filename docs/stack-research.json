@@ -1,7 +1,7 @@
 {
   "checkedOn": "2026-11-17",
-  "status": "public-alokai-m1-validated-connect-access-blocked",
-  "compatibilityValidated": true,
+  "status": "express-migration-validation-pending",
+  "compatibilityValidated": false,
   "runtime": {
     "name": "node",
     "version": "22.23.5",
@@ -44,26 +44,19 @@
       "installed": null
     },
     {
-      "name": "@alokai/connect",
-      "candidate": "2.5.2",
-      "source": "https://docs.alokai.com/alokai-versions/2.5",
-      "evidence": "public-404-vendor-registry-401",
-      "installed": null
-    },
-    {
       "name": "express",
       "candidate": "4.22.3",
       "workspace": "middleware",
-      "source": "https://docs.alokai.com/alokai-versions/2.5",
-      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "source": "https://registry.npmjs.org/express/4.22.3",
+      "evidence": "existing-npm-lock-resolution",
       "installed": "4.22.3"
     },
     {
       "name": "body-parser",
       "candidate": "1.20.9",
       "workspace": "middleware",
-      "source": "https://docs.alokai.com/alokai-versions/2.5",
-      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "source": "https://registry.npmjs.org/body-parser/1.20.9",
+      "evidence": "existing-npm-lock-resolution",
       "installed": "1.20.9"
     },
     {
@@ -81,20 +74,6 @@
       "installed": "1.65.1"
     },
     {
-      "name": "@vue-storefront/middleware",
-      "candidate": "5.4.1",
-      "installed": "5.4.1",
-      "source": "https://registry.npmjs.org/@vue-storefront/middleware/5.4.1",
-      "evidence": "npm-ci-typecheck-build-and-product-tests"
-    },
-    {
-      "name": "@vue-storefront/sdk",
-      "candidate": "3.4.2",
-      "installed": "3.4.2",
-      "source": "https://registry.npmjs.org/@vue-storefront/sdk/3.4.2",
-      "evidence": "npm-ci-typecheck-build-and-product-tests"
-    },
-    {
       "name": "vite",
       "candidate": "8.3.8",
       "installed": "8.3.8",
@@ -109,15 +88,13 @@
       "evidence": "npm-ci-typecheck-build-and-product-tests"
     }
   ],
-  "alokaiEcosystemRelease": "2.5.5",
   "pending": [
-    "Connect credentials and migration",
+    "Express migration CI validation",
     "Tailwind/PostCSS in M2",
     "Client Component testing when needed",
-    "security scanners and measured audits in M4"
+    "Scanners and measured audits in M4"
   ],
-  "validationScope": "Installed M1 public-package combination only; not Connect, Tailwind, RTL or security scanners.",
-  "validationRun": "https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44070965486",
+  "validationScope": "Express BFF, typed REST client and existing Next product slice. Full migration CI evidence pending.",
   "packageManager": {
     "name": "npm",
     "version": "10.9.9"

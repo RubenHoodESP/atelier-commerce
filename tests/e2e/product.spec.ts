@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-test('renders provider data in HTML through Next and real Alokai', async ({ page, request }) => {
+test('renders provider data in HTML through Next and Express', async ({ page, request }) => {
   const html = await request.get('/products/watch-001');
   expect(html.ok()).toBeTruthy();
   expect(await html.text()).toContain('Atelier Horizon');

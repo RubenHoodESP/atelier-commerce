@@ -4,8 +4,8 @@ import { join } from 'node:path';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const areas = {
-  planning: ['docs/PLAN.md', 'docs/STACK.md', 'docs/adr/0002-versions-and-alokai-access.md'],
-  integration: ['docs/adr/0003-public-alokai-integration.md', 'apps/middleware/src/product.ts', 'packages/contracts/src/index.ts', 'tests/product-integration.test.ts', '.agents/skills/atelier-integration-review/SKILL.md'],
+  planning: ['docs/PLAN.md', 'docs/STACK.md', 'docs/adr/0002-version-selection.md'],
+  integration: ['docs/adr/0003-express-bff.md', 'apps/middleware/src/product.ts', 'packages/contracts/src/index.ts', 'tests/product-integration.test.ts', '.agents/skills/atelier-integration-review/SKILL.md'],
   frontend: ['docs/PLAN.md', 'apps/storefront/README.md', '.agents/skills/atelier-frontend-review/SKILL.md'],
   quality: ['docs/QUALITY.md', 'tests/product-integration.test.ts', 'tests/e2e/product.spec.ts', '.github/workflows/m1.yml'],
 };

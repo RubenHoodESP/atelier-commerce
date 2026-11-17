@@ -3,7 +3,7 @@
   "info": {
     "title": "Atelier Mock Commerce Provider",
     "version": "0.1.0",
-    "description": "Local mock provider contract: product GET is implemented in M1; order POST remains planned for M3. Product and Money schemas also document the normalized domain model. Not the Alokai RPC wire protocol."
+    "description": "Local mock provider contract: product GET is implemented in M1; order POST remains planned for M3. Product and Money schemas also document the normalized domain model. The separate bff-openapi.json describes the public integration API."
   },
   "servers": [{ "url": "http://127.0.0.1:4100", "description": "Local fictional provider" }],
   "paths": {
@@ -13,7 +13,7 @@
         "summary": "Read one fictional product",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^watch-[0-9]{3}$" } }],
         "responses": {
-          "200": { "description": "Vendor-shaped product, normalized by the Alokai adapter", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProviderProduct" } } } },
+          "200": { "description": "Vendor-shaped product, normalized by the Express BFF adapter", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProviderProduct" } } } },
           "404": { "description": "Unknown vendor SKU", "content": { "application/json": { "schema": { "type": "object", "required": ["error"], "additionalProperties": false, "properties": { "error": { "type": "string", "const": "Unknown SKU" } } } } } }
         }
       }

@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@atelier/contracts": "0.1.0",
-    "@vue-storefront/sdk": "3.4.2",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",

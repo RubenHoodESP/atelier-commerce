@@ -40,6 +40,13 @@ check('runtime pins', () => {
   assert.equal(read('.nvmrc').trim(), '22.23.5');
   assert.equal(read('.node-version').trim(), read('.nvmrc').trim());
 });
+check('public integration dependencies', () => {
+  const lock = json('package-lock.json');
+  for (const [path, entry] of Object.entries(lock.packages)) {
+    assert.ok(!/node_modules\/@(?:alokai|vue-storefront)\//.test(path), 'retired integration dependency remains');
+    if (entry.resolved?.startsWith('https:')) assert.equal(new URL(entry.resolved).hostname, 'registry.npmjs.org');
+  }
+});
 check('research provenance', () => {
   const record = json('docs/stack-research.json');
   assert.match(record.checkedOn, /^\d{4}-\d{2}-\d{2}$/);

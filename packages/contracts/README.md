@@ -1,7 +1,9 @@
 # Demo contracts
 
-`src/index.ts` exports normalized domain types, runtime guards and the typed Alokai `CommerceEndpoints` / `ProductResult` boundary. It has no React or Express dependency. Provider-specific field names live in the integration adapter.
+src/index.ts exports normalized domain types, runtime guards, HTTP error mapping and CommerceClient. src/client.ts implements the typed fetch transport and validates both response JSON and HTTP status. It has no React, Express or private SDK dependency. The storefront wrapper keeps configuration server-only.
 
-[openapi.json](openapi.json) documents the local mock provider: vendor-shaped product retrieval is implemented in M1; order creation is explicitly planned for M3. It also records normalized domain schemas. It does not describe Alokai's generated RPC transport. Runtime integration tests exercise normalization and safe failures; Swagger Parser validates the full OpenAPI 3.1 document.
+- [bff-openapi.json](bff-openapi.json): implemented public Express GET /api/products/{id}, normalized results and HTTP errors.
+- [openapi.json](openapi.json): implemented vendor-shaped provider product GET; planned M3 order POST and domain models.
+- [examples.json](examples.json): product/order design examples; orders are not implemented yet.
 
-Order examples and invariants remain design inputs until their implementation. See [examples](examples.json) and [the architecture](../../docs/ARCHITECTURE.md).
+Swagger Parser validates both OpenAPI 3.1 documents. Integration tests exercise the actual typed client, Express BFF and HTTP provider. Client tests cover invalid responses, status mismatch, redaction and timeout. See [architecture](../../docs/ARCHITECTURE.md).

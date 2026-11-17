@@ -4,7 +4,7 @@
 
 Start with `docs/STATUS.md`; use `node scripts/context.mjs <area>` to identify the next files. Read only the relevant document sections and source files. Research versions again only when dependencies change or a compatibility question remains open. `docs/stack-research.json` records dated evidence, not proof of a successful build.
 
-Project skills are in `.agents/skills/`. Load `atelier-efficient-workflow` for implementation planning; load `atelier-integration-review` for APIs/Alokai; load `atelier-frontend-review` for React/Next changes. Do not preload all skills. These repository-local skills are not installed in the personal ChatGPT skill directory.
+Project skills are in `.agents/skills/`. Load `atelier-efficient-workflow` for implementation planning; load `atelier-integration-review` for Express APIs; load `atelier-frontend-review` for React/Next changes. Do not preload all skills. These repository-local skills are not installed in the personal ChatGPT skill directory.
 
 ## Product and boundaries
 
@@ -14,7 +14,7 @@ Build the smallest complete watch-shopping journey in `docs/PLAN.md`. Preserve t
 
 Implement one milestone or a small vertical slice at a time. Explain important decisions in Spanish to the learner; keep code identifiers and technical API docs in English. Distinguish implemented behavior, planned behavior and external integrations simulated locally. Do not claim professional mastery from this exercise.
 
-For dependencies: use stable versions, check engines and peer dependencies, keep Express on the major supported by Alokai, commit the generated lockfile and use `npm ci` once it exists. Never use `--force` or `--legacy-peer-deps` to conceal conflicts.
+For dependencies: use stable versions, check engines and peer dependencies, verify the selected Express major and its TypeScript types, commit the generated lockfile and use `npm ci` once it exists. Never use `--force` or `--legacy-peer-deps` to conceal conflicts.
 
 Use focused searches (`rg` when available, otherwise platform-native search). Exclude dependencies, build output and generated clients from context. Batch independent reads; keep mutations and dependent steps sequential. Do not spawn agents unless the user requests them or applicable instructions require them.
 

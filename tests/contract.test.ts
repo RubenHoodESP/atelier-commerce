@@ -10,4 +10,8 @@ describe('public contracts', () => {
     expect(isProductQuery({ id: 'watch-001', providerUrl: 'http://example.com' })).toBe(false);
     expect(isProduct({ id: 'watch-001', name: 'Watch', collection: 'Horizon', stock: 1, price: { amountMinor: 1.5, currency: 'EUR' } })).toBe(false);
   });
+  it('validates the public Express REST contract', async () => {
+    const document = await SwaggerParser.validate('packages/contracts/bff-openapi.json');
+    expect(document.openapi).toBe('3.1.0');
+  });
 });

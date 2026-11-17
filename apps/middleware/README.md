@@ -1,7 +1,7 @@
-# Middleware boundary
+# Express integration boundary
 
-Actual public Alokai middleware 5.4.1, built on its supported Express 4 major. `src/server.ts` configures the custom `commerce` integration; `src/product.ts` validates input, calls the provider with a bounded timeout and normalizes its response. Provider credentials and shapes stay here.
+Express 4.22.3 implements GET /api/products/:id and /healthz. server.ts owns HTTP routing, validation of server configuration, safe status mapping and request IDs. product.ts calls the provider with a bounded timeout and normalizes its vendor-shaped response. The app is native ESM; no integration loader or CommonJS bridge is needed.
 
-`src/integration.cts` is the small CommonJS bridge required by this middleware's integration loader. The adapter and application remain ESM. The SDK calls `POST /commerce/getProduct` with its RPC argument array; it receives a typed `ProductResult`. Do not confuse a resolved RPC failure with a REST error status.
+The public response is ProductResult: HTTP 200 on success; 400 for invalid input; 404 for missing product; 502 for failed/invalid provider responses; 504 for provider timeout; 500 for unexpected internal errors. Every response has no-store and a server-generated X-Request-ID. Raw error bodies/stacks are not exposed. CORS is not enabled because the storefront server calls this API directly.
 
-Run from the repository root using `npm run dev`. Local health check: `http://127.0.0.1:4000/healthz`. Connect 2.5 credentials are unavailable; these older public APIs are an explicit learning-project choice. See [ADR 0003](../../docs/adr/0003-public-alokai-integration.md) and [architecture](../../docs/ARCHITECTURE.md).
+Run npm run dev from the repository root. Default port 4000, loopback only. See [public contract](../../packages/contracts/bff-openapi.json) and [architecture](../../docs/ARCHITECTURE.md).

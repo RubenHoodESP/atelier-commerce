@@ -2,57 +2,58 @@
 
 A small composable watch storefront for learning frontend engineering and explaining end-to-end decisions in interviews. Fictional brand; demonstration only.
 
-**M1 implemented:** Next.js -> official public Alokai SDK -> public Alokai middleware -> local HTTP product provider. A server-rendered product, runtime validation, normalization, bounded upstream calls and safe failures are working. Connect 2.5 still requires unavailable credentials; see [ADR 0003](docs/adr/0003-public-alokai-integration.md). The public SDK/middleware APIs are explicitly older.
+**M1 uses Express:** Next.js -> typed REST client -> Express BFF -> local HTTP product provider. Product SSR, runtime validation, normalization, bounded calls and safe HTTP errors are implemented. All integration dependencies are available from public npm. No vendor account or private package registry is required.
 
 ## Run locally
 
-Use Node **22.23.5** and npm **10.9.9**. From this repository:
+CI baseline: Node **22.23.5**, npm **10.9.9**. The latest local build also passed on Node 24.22.1/npm 11.19.1. From the repository root, use these commands in PowerShell:
 
-```sh
-npm ci
-npm run dev
+```powershell
+npm.cmd ci
+npm.cmd run dev
 ```
 
-Open http://127.0.0.1:3000/products/watch-001. The command builds the TypeScript services, starts the mock provider (4100), Alokai middleware (4000) and Next development server (3000). It stops them together with Ctrl+C. Service source changes require restarting this command; Next UI changes use its development reload.
+Open http://127.0.0.1:3000/products/watch-001. The command builds TypeScript services and starts provider (4100), Express BFF (4000) and Next (3000), all on loopback. Ctrl+C stops the stack. Service source changes currently require restarting; Next UI reloads in development. Other shells can use npm without the .cmd suffix.
 
-Defaults work without configuration. To override them, copy [.env.example](.env.example) to .env in the repository root. Values stay on the server. Services bind to loopback. To run a production build: npm run build, then npm start. The product route is rendered on demand, so providers need not run during the build.
+Defaults need no configuration. Copy [.env.example](.env.example) to .env for overrides; these settings stay on the server. COMMERCE_API_URL points to the BFF /api base, while PROVIDER_URL points to the vendor mock. For production: npm run build, then npm start. Providers are not required during the build.
 
 ## Verify
 
-```sh
-npm run check
-npm run typecheck
-npm test
-npm run build
-npx playwright install chromium
-npm run test:e2e
+```powershell
+npm.cmd run check
+npm.cmd run typecheck
+npm.cmd test
+npm.cmd run build
+npx.cmd playwright install chromium
+npm.cmd run test:e2e
 ```
 
-CI uses npm ci on Node 22.23.5, validates OpenAPI 3.1, runs 8 Vitest checks and 2 Chromium E2E checks against production servers. The E2E checks assert initial product HTML, navigation, price/stock and an HTTP 404 for unknown products. See [current evidence](docs/STATUS.md). Security scanners, lint and measured performance/accessibility audits are still pending; passing these tests does not imply they ran.
+CI uses npm ci and runs structural checks, typecheck, contract/client/HTTP tests, production build and Chromium E2E. See [exact evidence and restrictions](docs/STATUS.md). Public REST: GET http://127.0.0.1:4000/api/products/watch-001. Failure responses have an explicit 400/404/500/502/504 status and safe typed JSON. BFF health: /healthz; provider health: /health.
 
 ## Start here
 
 - [Development plan, in Spanish](docs/PLAN.md)
-- [Architecture and boundaries](docs/ARCHITECTURE.md)
-- [Stack and exact versions](docs/STACK.md)
-- [Current state and next task](docs/STATUS.md)
-- [Quality strategy](docs/QUALITY.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Stack](docs/STACK.md)
+- [Current state](docs/STATUS.md)
+- [Quality](docs/QUALITY.md)
 - [Interview practice](docs/INTERVIEW.md)
+- [Express decision](docs/adr/0003-express-bff.md)
 - [Agent instructions](AGENTS.md)
 
-Use node scripts/context.mjs integration (or frontend, quality, planning) to locate relevant context without loading all documentation.
+Run node scripts/context.mjs integration (or frontend, quality, planning) to locate relevant context selectively.
 
 ## Repository areas
 
 | Area | Responsibility |
 | --- | --- |
-| apps/storefront | Next App Router, React, server-only SDK and initial CSS |
-| apps/middleware | Actual public Alokai integration, provider normalization and timeouts |
-| apps/mock-services | Deterministic fictional HTTP product provider |
-| packages/contracts | Domain types/guards, provider OpenAPI and planned order examples |
+| apps/storefront | Next App Router, React, server-only API configuration, initial CSS |
+| apps/middleware | Express REST BFF, normalization, correlation and timeouts |
+| apps/mock-services | Fictional vendor-shaped product provider |
+| packages/contracts | Domain types/guards, typed fetch client, provider and BFF OpenAPI |
 | docs/adr | Decisions and limitations |
-| .agents/skills | Three versioned project workflows loaded selectively |
+| .agents/skills | Three versioned project workflows |
 
-Next: **M2**, catalog, URL filters, brand content and Tailwind. Cart and order acceptance belong to M3. No real enterprise provider, account or payment is connected.
+Next: M2 catalog, URL filters, brand content and Tailwind. M3 adds cart/orders. No real enterprise provider, identity or payment is connected. Lint, scanners and measured accessibility/performance audits remain future work.
 
-[RubenHoodESP/atelier-commerce](https://github.com/RubenHoodESP/atelier-commerce) is private; default branch master. Do not upload the job PDF, CV, credentials or personal notes. See [publication](docs/PUBLISH.md).
+[Repository](https://github.com/RubenHoodESP/atelier-commerce) is private; default branch master. Do not upload job PDFs, CVs, credentials or personal notes. See [publication](docs/PUBLISH.md).
