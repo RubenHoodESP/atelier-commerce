@@ -1,7 +1,7 @@
 {
   "checkedOn": "2026-11-17",
-  "status": "express-migration-validation-pending",
-  "compatibilityValidated": false,
+  "status": "express-rest-m1-validated",
+  "compatibilityValidated": true,
   "runtime": {
     "name": "node",
     "version": "22.23.5",
@@ -89,14 +89,14 @@
     }
   ],
   "pending": [
-    "Express migration CI validation",
     "Tailwind/PostCSS in M2",
     "Client Component testing when needed",
     "Scanners and measured audits in M4"
   ],
-  "validationScope": "Express BFF, typed REST client and existing Next product slice. Full migration CI evidence pending.",
+  "validationScope": "Express BFF and typed REST client: npm ci, structural checks, typecheck, 19 contract/client/real-HTTP tests, production build and 2 Chromium E2E tests on Node 22.23.5.",
   "packageManager": {
     "name": "npm",
     "version": "10.9.9"
-  }
+  },
+  "validationRun": "https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459"
 }
