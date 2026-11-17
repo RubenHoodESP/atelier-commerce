@@ -6,6 +6,7 @@
   --color-muted: #625f56;
   --color-line: #d5d0c4; /* decorative separators only (1.39:1) */
   --color-control: #857f72; /* form control borders: 3.59:1 on paper, 3.19:1 on panel (WCAG 1.4.11) */
+  --color-accent: #8a6926; /* focus ring and seconds hand */
   --font-sans: Arial, Helvetica, sans-serif;
   /* Cormorant Garamond via next/font (app/fonts.ts); Georgia only while it loads or if it fails. */
   --font-editorial: var(--font-display), Georgia, serif;
@@ -14,6 +15,35 @@
   --duration-reveal: 700ms;
   --duration-hover: 450ms;
 }
+/* Themes. Light is the default palette above. Dark applies when the guest chooses it
+   (data-theme="dark", set by the server from a cookie) or when the system prefers dark and the
+   guest has not chosen light. Both dark blocks must stay identical (checked by
+   tests/theme-contrast.test.ts, which also enforces WCAG contrast for every pair). */
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #16150f;
+  --color-panel: #22201a;
+  --color-ink: #ece6d8;
+  --color-muted: #a8a194;
+  --color-line: #36332b;
+  --color-control: #857e70;
+  --color-accent: #c9a45c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-paper: #16150f;
+    --color-panel: #22201a;
+    --color-ink: #ece6d8;
+    --color-muted: #a8a194;
+    --color-line: #36332b;
+    --color-control: #857e70;
+    --color-accent: #c9a45c;
+  }
+}
+
 @layer base {
   body { @apply bg-paper font-sans text-ink antialiased; }
   /* Cormorant has fine hairlines: display sizes only (headings), never body copy. */
@@ -22,7 +52,7 @@
   h1 em, h2 em { @apply font-normal italic; }
   a, button, select { @apply touch-manipulation; }
   button, select { @apply cursor-pointer; }
-  :focus-visible { outline: 3px solid #8a6926; outline-offset: 5px; }
+  :focus-visible { outline: 3px solid var(--color-accent); outline-offset: 5px; }
   header { @apply flex min-h-28 flex-wrap items-center justify-between gap-6 border-b border-line px-[6vw] py-5; }
   footer { @apply border-t border-line px-[6vw] py-6 text-xs leading-6 text-muted; }
 }
@@ -33,7 +63,7 @@
   .eyebrow { @apply text-[10px] tracking-[0.25em] uppercase; }
   .intro { @apply mx-auto min-h-[70vh] max-w-[1000px] px-[6vw] py-16 md:py-24; }
   .intro > p:not(.eyebrow) { @apply max-w-lg leading-8 text-muted; }
-  .button { @apply inline-flex min-h-12 items-center justify-center gap-6 bg-ink px-6 py-3 text-sm text-white; }
+  .button { @apply inline-flex min-h-12 items-center justify-center gap-6 bg-ink px-6 py-3 text-sm text-paper; }
   .product { @apply mx-auto grid min-h-[70vh] max-w-[1300px] items-center gap-9 px-[6vw] py-12 md:grid-cols-2 md:gap-[8vw] md:py-20; }
   .watch-panel { @apply grid min-h-[330px] place-items-center bg-panel md:min-h-[480px]; }
   .product h1 { @apply text-[clamp(2.2rem,4vw,3.5rem)]; }
@@ -42,7 +72,7 @@
   .product dl { @apply my-9; }
   .product dl > div { @apply flex justify-between gap-4 border-t border-line py-4 text-sm; }
   .availability { @apply text-sm leading-6 text-muted; }
-  .skip-link { @apply absolute -top-40 left-3 z-50 bg-ink p-3 text-white focus:top-3; }
+  .skip-link { @apply absolute -top-40 left-3 z-50 bg-ink p-3 text-paper focus:top-3; }
 
   /* Entrance: pure CSS so server HTML is visible without JavaScript; the animation only
      softens how already-rendered content appears. Stagger with style={{ '--reveal-order': n }}. */

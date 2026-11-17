@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ThemeSwitch } from './theme-switch';
 
 const LINKS = [
   { href: '/', label: 'Home', current: (path: string) => path === '/' },
@@ -9,7 +10,7 @@ const LINKS = [
 
 // bagCount comes from the server layout (commerce cart units). null means "unknown": the link
 // is still shown, without a number, rather than displaying a possibly wrong count.
-export function SiteHeader({ bagCount }: { bagCount: number | null }) {
+export function SiteHeader({ bagCount, theme }: { bagCount: number | null; theme: 'system' | 'light' | 'dark' }) {
   const path = usePathname();
   const onBag = path === '/cart';
   return (
@@ -29,12 +30,13 @@ export function SiteHeader({ bagCount }: { bagCount: number | null }) {
           {bagCount !== null && bagCount > 0 && (
             // key remounts the number when it changes, replaying a CSS lift (no Motion on every page).
             <span aria-hidden="true" data-testid="bag-count"
-              className="inline-grid min-w-6 place-items-center overflow-hidden rounded-full bg-ink px-1.5 text-xs leading-6 text-white">
+              className="inline-grid min-w-6 place-items-center overflow-hidden rounded-full bg-ink px-1.5 text-xs leading-6 text-paper">
               <span key={bagCount} className="count-lift">{bagCount}</span>
             </span>
           )}
         </Link>
       </nav>
+      <ThemeSwitch theme={theme} />
     </header>
   );
 }

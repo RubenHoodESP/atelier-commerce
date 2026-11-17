@@ -22,7 +22,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M3 están implementados; M4 es el siguiente hito.**
+**M0–M3 están implementados; M4 está en curso (corte 1: temas claro y oscuro).**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
@@ -30,7 +30,8 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
 - M3 cortes 1–3 implementados: bolsa invitada con edición ([ADR 0005](adr/0005-guest-cart-session.md)) y pedido simulado con sección crítica síncrona e idempotencia ([ADR 0006](adr/0006-order-acceptance-idempotency.md)). Corte 4: contador de la bolsa en la cabecera, `aria-current`, títulos descriptivos, contraste de controles corregido y cierre de M3 con cada criterio del plan ligado a su prueba (ver [STATUS](STATUS.md#m3-acceptance-against-plan)).
 - Corte de pulido: movimiento con CSS y Motion 14.9.0 limitado a catálogo y bolsa, sin ocultar contenido sin JavaScript y con `prefers-reduced-motion` ([ADR 0007](adr/0007-motion.md)). Playwright usa movimiento reducido por defecto. Titulares en Cormorant Garamond autoalojada con `next/font/local` ([ADR 0008](adr/0008-display-typography.md)).
-- M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
+- M4 corte 1: tema claro/oscuro con selector Auto/Light/Dark, cookie HttpOnly y `data-theme` desde el servidor; contraste de ambas paletas comprobado por test ([ADR 0009](adr/0009-colour-themes.md)). La CI ya se puede leer con las herramientas de GitHub y pasó en las PR #5–#7.
+- M4 pendiente: axe en ambos temas, lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
@@ -128,4 +129,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está completo; M4 es el siguiente hito. Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M4 está en curso (corte 1 hecho). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

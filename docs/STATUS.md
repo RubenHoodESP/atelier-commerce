@@ -1,10 +1,24 @@
 # Current state
 
-- **M0–M3 implemented.** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M3 implemented; M4 in progress (slice 1: light and dark themes).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## Watch illustration redesign (with M4)
+
+- `WatchIllustration` redrawn as a brand-free, gradient-only SVG (no filters): metallic case, bezel and lugs, fluted crown, sunburst dial, 60-tick minute track, dauphine hands in the 10:10 product pose, glass reflection, soft contact shadow, stitched straps. Collection sets the palette (Horizon gold/cream, Meridian steel/silver, Nocturne gunmetal/navy); the model number deterministically varies markers (batons, Roman numerals, dots), date window (which replaces the 3 o'clock marker) and strap colour. The seconds hand keeps its sweep and now rests near 8 o'clock so it hides neither hands nor wordmarks. Free stock photography was considered and rejected: brand logos on real watches would misrepresent the fictional Atelier brand and mixed photo sets break visual consistency.
+- Cost: `/products` HTML 4.4 → 8.0 KB gzip (12 inline watches), `/products/watch-001` 3.9 → 5.9 KB gzip; JavaScript unchanged.
+- Checks (2026-11-17): `npm run check`, `lint`, `typecheck`, `build` passed; `npm test` 104 passed; E2E 37 passed with reduced motion and 37 with motion. Catalog and detail screenshots inspected in both themes.
+
+## M4 slice 1: light and dark themes
+
+- Auto follows `prefers-color-scheme`; a header switch (Auto/Light/Dark) stores an explicit choice in the HttpOnly `atelier_theme` cookie and the server renders `data-theme` on `<html>` (no flash, works without JavaScript; with JavaScript the theme previews instantly). Warm dark palette on the same tokens; hard-coded white and gold replaced by `paper` and `--color-accent`; `color-scheme` for native controls. See [ADR 0009](adr/0009-colour-themes.md).
+- `tests/theme-contrast.test.ts` (19) enforces WCAG contrast for both palettes from `globals.css` and that both dark blocks match; a mutation made it fail. Dark palette: ink/paper 14.70, muted/paper 7.13, muted/panel 6.35, button 14.70, focus 7.79, control 4.54/4.04.
+- `tests/e2e/theme.spec.ts` (4): Auto vs system, persistence and precedence, server-rendered `data-theme`, HttpOnly cookie, no-JS switch, 24×24 px targets.
+- CI is now readable through the GitHub tools: both workflows (Foundation, Commerce integration with lint, tests, build and E2E on the Playwright-managed Chromium) succeeded for PRs #5–#7 and their merges (latest: run 44193120457 on `ada84a1`).
+- Checks (2026-11-17): `npm run check`, `lint`, `typecheck`, `build` passed; `npm test` **104 passed in 8 files**; E2E **37 passed** with reduced motion and **37** with motion; theme spec stress 100/100. Dark and 360 px screenshots inspected (no horizontal scroll).
 
 ## M3 slice 4: header bag count, accessibility review and closure
 
@@ -97,4 +111,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M4: run and record real quality tooling without claiming results in advance — type-aware lint (oxlint type-aware rules with tsgolint, compatible with TypeScript 7), dependency audit including the vite/vitest picomatch advisory, an automated accessibility audit (e.g. axe in Playwright) plus a manual screen-reader pass, SonarQube/Snyk if accounts are available, and measured performance with recorded conditions. Verify CI results for the merged M3 PRs. Then M5: five-minute demo, English explanation and a change made without AI.
+M4 slice 2: automated accessibility audit with `@axe-core/playwright` across the journey in both themes, fixing findings, plus a manual screen-reader script for the learner. Then type-aware lint (`oxlint-tsgolint`), dependency audit policy (the vite/vitest picomatch advisory has no fixed picomatch release according to `npm audit`; dev-only), and measured Lighthouse runs with recorded conditions. SonarQube/Snyk need accounts and remain not run.
