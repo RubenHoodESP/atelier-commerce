@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atelier Efficient Workflow"
+  short_description: "Selective context and focused project changes"
+  default_prompt: "Use $atelier-efficient-workflow to implement the next bounded Atelier Commerce milestone."

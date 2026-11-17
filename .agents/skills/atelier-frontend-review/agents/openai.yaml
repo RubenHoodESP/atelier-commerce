@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atelier Frontend Review"
+  short_description: "Review React boundaries, accessibility and tests"
+  default_prompt: "Use $atelier-frontend-review to check this Atelier Commerce React or Next.js feature."

@@ -1,0 +1,13 @@
+{
+  "name": "atelier-commerce",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Composable storefront learning project: planning and foundation",
+  "engines": { "node": ">=22.23.5 <27" },
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "check": "node scripts/check-foundation.mjs",
+    "context": "node scripts/context.mjs"
+  }
+}

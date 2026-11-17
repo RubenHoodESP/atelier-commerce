@@ -1,0 +1,96 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Atelier Mock Commerce Provider",
+    "version": "0.1.0",
+    "description": "Proposed local provider contract. Not implemented; not the Alokai SDK wire protocol."
+  },
+  "servers": [{ "url": "http://localhost:4100", "description": "Planned local mock" }],
+  "paths": {
+    "/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "summary": "Read one fictional product",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 80 } }],
+        "responses": {
+          "200": { "description": "Product", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Product" } } } },
+          "404": { "$ref": "#/components/responses/Failure" },
+          "500": { "$ref": "#/components/responses/Failure" }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "operationId": "createOrder",
+        "summary": "Atomically validate server prices and stock and accept a simulated order",
+        "description": "Same key and body return the same order. Reusing a key with another body is a conflict. In-memory state resets on restart. Product IDs must be unique within the request.",
+        "parameters": [{ "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 16, "maxLength": 100 } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderInput" }, "example": { "items": [{ "productId": "watch-001", "quantity": 2 }] } } } },
+        "responses": {
+          "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } } },
+          "200": { "description": "Idempotent replay", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } } },
+          "400": { "$ref": "#/components/responses/Failure" },
+          "404": { "$ref": "#/components/responses/Failure" },
+          "409": { "$ref": "#/components/responses/Failure" },
+          "500": { "$ref": "#/components/responses/Failure" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Money": {
+        "type": "object", "additionalProperties": false,
+        "required": ["amountMinor", "currency"],
+        "properties": { "amountMinor": { "type": "integer", "minimum": 0 }, "currency": { "type": "string", "const": "EUR" } }
+      },
+      "Product": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "name", "collection", "price", "stock"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "collection": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "price": { "$ref": "#/components/schemas/Money" },
+          "stock": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "OrderItemInput": {
+        "type": "object", "additionalProperties": false,
+        "required": ["productId", "quantity"],
+        "properties": { "productId": { "type": "string", "minLength": 1, "maxLength": 80 }, "quantity": { "type": "integer", "minimum": 1, "maximum": 20 } }
+      },
+      "OrderInput": {
+        "type": "object", "additionalProperties": false,
+        "required": ["items"],
+        "properties": { "items": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/components/schemas/OrderItemInput" } } }
+      },
+      "OrderLine": {
+        "type": "object", "additionalProperties": false,
+        "required": ["productId", "quantity", "unitPrice"],
+        "properties": { "productId": { "type": "string" }, "quantity": { "type": "integer", "minimum": 1, "maximum": 20 }, "unitPrice": { "$ref": "#/components/schemas/Money" } }
+      },
+      "Order": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "status", "items", "total"],
+        "properties": {
+          "id": { "type": "string" }, "status": { "type": "string", "const": "confirmed" },
+          "items": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/components/schemas/OrderLine" } },
+          "total": { "$ref": "#/components/schemas/Money" }
+        }
+      },
+      "Error": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code", "message", "requestId"],
+        "properties": {
+          "code": { "type": "string", "enum": ["INVALID_INPUT", "PRODUCT_NOT_FOUND", "OUT_OF_STOCK", "IDEMPOTENCY_CONFLICT", "INTERNAL_ERROR"] },
+          "message": { "type": "string" }, "requestId": { "type": "string" },
+          "details": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "responses": {
+      "Failure": { "description": "Safe provider failure", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  }
+}

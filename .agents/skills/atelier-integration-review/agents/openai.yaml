@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atelier Integration Review"
+  short_description: "Review Alokai, API boundaries and commerce risks"
+  default_prompt: "Use $atelier-integration-review to review this Atelier Commerce API or Alokai change."

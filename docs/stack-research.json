@@ -1,0 +1,21 @@
+{
+  "checkedOn": "2026-11-17",
+  "status": "researched-not-installed",
+  "compatibilityValidated": false,
+  "runtime": { "name": "node", "version": "22.23.5", "source": "https://nodejs.org/en/blog/release/v22.23.5" },
+  "packages": [
+    { "name": "next", "candidate": "16.4.6", "source": "https://registry.npmjs.org/next/latest", "evidence": "registry" },
+    { "name": "react", "candidate": "19.3.1", "source": "https://registry.npmjs.org/react/latest", "evidence": "registry" },
+    { "name": "react-dom", "candidate": "19.3.1", "source": "https://react.dev/versions", "evidence": "matching-release-pending" },
+    { "name": "typescript", "candidate": "7.0.2", "source": "https://registry.npmjs.org/typescript/latest", "evidence": "registry" },
+    { "name": "tailwindcss", "candidate": "4.3.5", "source": "https://registry.npmjs.org/tailwindcss/latest", "evidence": "registry" },
+    { "name": "@alokai/connect", "candidate": "2.5.2", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-release-registry-pending" },
+    { "name": "express", "candidate": "4.22.3", "workspace": "middleware", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-compatibility-baseline" },
+    { "name": "body-parser", "candidate": "1.20.9", "workspace": "middleware", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-compatibility-baseline" },
+    { "name": "express", "candidate": "5.3.0", "workspace": "mock-services", "source": "https://registry.npmjs.org/express/latest", "evidence": "registry" },
+    { "name": "vitest", "candidate": "5.1.0", "source": "https://registry.npmjs.org/vitest/latest", "evidence": "registry" },
+    { "name": "@playwright/test", "candidate": "1.65.1", "source": "https://registry.npmjs.org/@playwright/test/latest", "evidence": "registry" }
+  ],
+  "alokaiEcosystemRelease": "2.5.5",
+  "pending": ["registry access and license", "React DOM matching release", "TypeScript tooling compatibility", "Vite and React Testing Library peers", "Tailwind PostCSS adapter", "generated lockfile", "build and real integration smoke test"]
+}
