@@ -30,13 +30,13 @@ export function CatalogFilters({ query }: { query: CatalogQuery }) {
       <fieldset disabled={pending} className="flex flex-wrap items-end gap-5 disabled:opacity-60">
         <legend className="sr-only">Filter and sort watches</legend>
         <div className="grid gap-2 text-sm"><label htmlFor="catalog-collection">Collection</label>
-          <select id="catalog-collection" name="collection" value={query.collection ?? ''} onChange={event => event.currentTarget.form?.requestSubmit()} className="min-w-40 border border-line bg-paper p-3">
+          <select id="catalog-collection" name="collection" value={query.collection ?? ''} onChange={event => event.currentTarget.form?.requestSubmit()} className="min-w-40 border border-control bg-paper p-3">
             <option value="">All collections</option>
             {COLLECTIONS.map(collection => <option key={collection} value={collection}>{collection[0]!.toUpperCase() + collection.slice(1)}</option>)}
           </select>
         </div>
         <div className="grid gap-2 text-sm"><label htmlFor="catalog-sort">Sort by</label>
-          <select id="catalog-sort" name="sort" value={query.sort ?? 'featured'} onChange={event => event.currentTarget.form?.requestSubmit()} className="min-w-44 border border-line bg-paper p-3">
+          <select id="catalog-sort" name="sort" value={query.sort ?? 'featured'} onChange={event => event.currentTarget.form?.requestSubmit()} className="min-w-44 border border-control bg-paper p-3">
             <option value="featured">Featured</option><option value="price-asc">Price: low to high</option>
             <option value="price-desc">Price: high to low</option><option value="name-asc">Name: A to Z</option>
           </select>

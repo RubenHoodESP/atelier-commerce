@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { createCommerceClient } from '@atelier/contracts/client';
 
 export function getCommerce() {
@@ -7,3 +8,6 @@ export function getCommerce() {
     timeoutMs: Number(process.env.COMMERCE_API_TIMEOUT_MS ?? 2500),
   });
 }
+
+// One provider read per request, shared by generateMetadata and the page.
+export const getProductOnce = cache((id: string) => getCommerce().getProduct({ id }));

@@ -40,6 +40,10 @@ The product page renders an Add to bag form bound to a Server Action. Next rejec
 
 The bag renders a Place order form with a hidden idempotency key. The `placeOrder` Server Action sends `{cartId}` and `Idempotency-Key` to `POST /api/orders`; the BFF reads the commerce cart, sends only product IDs and quantities to the provider's `POST /orders`, and normalizes the result (201 created, 200 replay). The provider runs idempotency lookup, re-pricing, the all-or-nothing stock check, decrement, order creation and the key record synchronously; inventory is per provider instance. On success the cart cookie is cleared and the guest is redirected to the server-rendered `/orders/[id]`. New errors: ORDER_NOT_FOUND 404, CART_EMPTY 409, IDEMPOTENCY_CONFLICT 409. See [ADR 0006](adr/0006-order-acceptance-idempotency.md).
 
+## Header bag count
+
+The root layout reads the guest cart (only when the cookie exists) and passes the unit count to the client `SiteHeader`; a failed read shows "Bag" without a number. Bag-changing Server Actions call `revalidatePath('/', 'layout')` because layouts persist across client navigations.
+
 ## Trust and future writes
 
 - Trusted server configuration supplies addresses; user input cannot choose proxy URLs. Next configuration is server-only. Services bind to loopback on ports 3000/4000/4100. No browser CORS allowance is needed.

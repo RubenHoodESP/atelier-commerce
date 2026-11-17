@@ -34,4 +34,4 @@ Las escrituras usan una Server Action enviada por `<form action>`. Funciona sin 
 
 ## Límites conocidos
 
-El estado en memoria se pierde al reiniciar y no es compartido entre procesos; producción necesitaría almacenamiento duradero. La cookie `Secure` sobre `http://127.0.0.1` se verificó en Chromium; otros navegadores pueden tratar de forma distinta los orígenes locales sin TLS. No hay contador en la cabecera todavía.
+El estado en memoria se pierde al reiniciar y no es compartido entre procesos; producción necesitaría almacenamiento duradero. La cookie `Secure` sobre `http://127.0.0.1` se verificó en Chromium; otros navegadores pueden tratar de forma distinta los orígenes locales sin TLS. El contador de la cabecera (corte 4) se calcula en el layout del servidor a partir del carrito de comercio, solo cuando existe la cookie; si la lectura falla se muestra "Bag" sin número en lugar de un valor posiblemente erróneo. Las Server Actions que cambian la bolsa revalidan el layout (`revalidatePath('/', 'layout')`) porque los layouts persisten entre navegaciones.

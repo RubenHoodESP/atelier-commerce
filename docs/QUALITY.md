@@ -14,6 +14,10 @@ E2E uses production Next and a real BFF with an isolated controllable HTTP provi
 
 Motion: Playwright defaults to `reducedMotion: 'reduce'` for deterministic journeys; `motion.spec.ts` re-enables motion to check the seconds sweep, hover-only card sweep, entrance, filtering during animation, absence of `opacity: 0` in server HTML and a visible no-JS entrance. See [ADR 0007](adr/0007-motion.md).
 
+## Accessibility review (M3 slice 4)
+
+Manual review of catalog → detail → bag → order plus automated E2E checks. Fixed: form-control borders used the decorative `line` color (1.39:1); they now use `--color-control` #857f72 (3.59:1 on paper, 3.19:1 on panel, WCAG 1.4.11). Catalog and detail pages now have descriptive titles (WCAG 2.4.2; Next's route announcer reads them). Header links expose `aria-current="page"`; the bag link is named "Bag, N items" with the visible label first (WCAG 2.5.3). Verified by E2E: keyboard-only journey to a confirmed order, skip link as first stop moving focus into `main`, titles, control border colour, header count with and without JavaScript. Measured palette contrast: ink/paper 13.88, muted/paper 5.75, muted/panel 5.11, button 15.41, focus ring 4.58. Not done: automated audit tooling (axe/Lighthouse) and testing with real screen readers; both belong to M4 and must not be reported as passed.
+
 ## CI
 
 Pinned Node -> npm ci -> structural checks -> lint -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint runs after structural checks. SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.
@@ -28,7 +32,6 @@ ESLint with `eslint-config-next` was rejected for now: it pulls typescript-eslin
 - `unicorn/no-array-reverse`, `unicorn/no-array-sort`: the TypeScript lib is ES2022, which lacks `toReversed`/`toSorted`.
 - `unicorn/consistent-function-scoping`: style-only.
 - `no-console` allows `warn`/`error` (safe editorial-fallback warning) and is off for scripts, test support and service entry points.
-- `nextjs/no-html-link-for-pages` is off only for `app/layout.tsx`, whose header uses plain links; switching to `next/link` changes navigation behavior and needs its own reviewed change.
 
 ### Claude Code project settings
 

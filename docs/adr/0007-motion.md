@@ -9,7 +9,9 @@ El movimiento debe transmitir calma y precisión, no espectáculo: duraciones de
 - **CSS** para todo lo que no necesita JavaScript: entrada escalonada (`.reveal`) en portada, catálogo, ficha y confirmación; segundero del reloj (`.watch-seconds`, giro de 60 s); elevación de la ilustración al pasar el ratón o enfocar una tarjeta (`.watch-lift`). En el catálogo el segundero solo gira al pasar el ratón o enfocar, para no mover doce relojes a la vez; en la ficha gira siempre.
 - **Motion 14.9.0** (MIT, sucesor de Framer Motion) solo para lo que CSS no resuelve bien: recolocar tarjetas al filtrar u ordenar (`layout`) y animar salidas (`AnimatePresence`) al eliminar líneas de la bolsa, más un fundido del subtotal.
 
-Motion se limita a Client Components hoja (`CatalogGrid`, `BagEditor`) mediante `MotionScope`: `LazyMotion` con carga diferida de funciones y `strict` (solo componentes `m.*`), y `MotionConfig reducedMotion="user"`. Las Server Components no cambian.
+Motion se limita a Client Components hoja (`CatalogGrid`, `BagEditor`) mediante `MotionScope`: `LazyMotion` con `domMax` cargado de forma síncrona y `strict` (solo componentes `m.*`), y `MotionConfig reducedMotion="user"`. Las Server Components no cambian. El contador de la cabecera, presente en todas las páginas, usa una animación CSS con `key` en lugar de Motion.
+
+**Corrección (corte 4 de M3).** La primera versión cargaba las funciones de Motion de forma diferida. Una prueba de estrés mostró que, si se filtraba antes de que llegaran, la salida de `AnimatePresence` no terminaba y las tarjetas eliminadas quedaban en pantalla (1 fallo en 120 ejecuciones con movimiento activo; la URL ya mostraba el filtro y seguían las 12 tarjetas). Con carga síncrona: 0 fallos en 480 ejecuciones.
 
 ## Reglas
 
@@ -17,7 +19,7 @@ Motion se limita a Client Components hoja (`CatalogGrid`, `BagEditor`) mediante 
 - **`prefers-reduced-motion`.** Con la preferencia activa no hay entrada, segundero ni elevación (CSS), y Motion omite animaciones de posición y transformación.
 - **Accesibilidad sin regresiones.** Las salidas no retrasan el traslado de foco a la región de estado de la bolsa (corte 2).
 - **Pruebas deterministas.** Playwright usa `reducedMotion: 'reduce'` por defecto; `tests/e2e/motion.spec.ts` reactiva el movimiento para comprobar las animaciones. La suite completa también se ejecutó con movimiento activo.
-- **Coste medido.** JavaScript referenciado por el HTML de cada ruta, comprimido con gzip, antes y después: `/` y `/products/watch-001` sin cambios (174,3 y 174,7 KB); `/products` 175,1 → 193,6 KB (+18,5 KB); `/cart` 175,5 → 193,1 KB (+17,6 KB). La función `layout` exige el paquete `domMax`; si el coste resultara excesivo, la alternativa es mantener solo las salidas con `domAnimation`.
+- **Coste medido.** La primera medición solo contaba los chunks referenciados por el HTML y omitía el chunk diferido, así que infravaloraba el coste. Medición corregida (todo el JavaScript descargado por el navegador en un contexto limpio por ruta, gzip): `/` 135,6 KB y `/products/watch-001` 136,3 KB (sin Motion); `/products` 182,3 KB y `/cart` 181,8 KB con `domMax` síncrono. La variante `domAnimation` (sin `layout`, perdería la reordenación de tarjetas) bajaría ambas a unos 168 KB.
 
 ## Alternativas descartadas
 
