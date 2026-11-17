@@ -21,4 +21,22 @@ const results = await Promise.all(Object.entries(packages).map(async ([name, ver
 console.log('STACK_REPORT_START');
 console.log(JSON.stringify({ node: process.version, checkedAt: new Date().toISOString(), packages: results }));
 console.log('STACK_REPORT_END');
+if (results.some(result => result.name === '@alokai/connect' && result.status === 404)) {
+  for (const url of [
+    'https://registry.npmjs.org/%40alokai%2Fconnect',
+    'https://npm.alokai.cloud/%40alokai%2Fconnect',
+    'https://registry.npmjs.org/%40vue-storefront%2Fmiddleware/latest',
+    'https://registry.npmjs.org/%40vue-storefront%2Fsdk/latest',
+  ]) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      const text = await response.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = {}; }
+      console.log('ALOKAI_ACCESS', JSON.stringify({ url, status: response.status, name: data.name, version: data.version, license: data.license, engines: data.engines, exports: data.exports, dependencies: data.dependencies, peerDependencies: data.peerDependencies, error: data.error }));
+    } catch (error) {
+      console.log('ALOKAI_ACCESS', JSON.stringify({ url, error: error.message }));
+    }
+  }
+}
 if (results.some(result => result.status !== 200)) process.exitCode = 1;
