@@ -1,6 +1,6 @@
 {
   "product": { "id": "watch-001", "name": "Atelier Horizon", "collection": "Horizon", "price": { "amountMinor": 125000, "currency": "EUR" }, "stock": 3 },
   "orderInput": { "items": [{ "productId": "watch-001", "quantity": 2 }] },
-  "order": { "id": "order-001", "status": "confirmed", "items": [{ "productId": "watch-001", "quantity": 2, "unitPrice": { "amountMinor": 125000, "currency": "EUR" } }], "total": { "amountMinor": 250000, "currency": "EUR" } },
+  "order": { "id": "5f0c8a52-6f3e-4a8b-9c1d-2e7f4b6a9d10", "status": "confirmed", "items": [{ "productId": "watch-001", "name": "Atelier Horizon", "quantity": 2, "unitPrice": { "amountMinor": 125000, "currency": "EUR" }, "lineTotal": { "amountMinor": 250000, "currency": "EUR" } }], "total": { "amountMinor": 250000, "currency": "EUR" } },
   "outOfStock": { "code": "OUT_OF_STOCK", "message": "A selected product is no longer available in that quantity.", "requestId": "request-demo-001" }
 }

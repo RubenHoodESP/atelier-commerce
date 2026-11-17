@@ -22,13 +22,13 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M2 están implementados; M3 está en curso (cortes 1–2 de 4: bolsa invitada con edición).**
+**M0–M2 están implementados; M3 está en curso (cortes 1–3 de 4: bolsa invitada, edición y pedido simulado).**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
 - M2: 12 productos en Horizon/Meridian/Nocturne, catálogo SSR, filtros/ordenación URL, historial y regreso desde detalle, agotados consultables, contenido editorial por HTTP con respaldo local, Tailwind y navegación adaptable/accesible básica.
 - Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
-- M3 cortes 1–2 implementados: añadir, ver, cambiar cantidad y eliminar líneas; carrito en comercio y cookie opaca HttpOnly ([ADR 0005](adr/0005-guest-cart-session.md)). Pendiente en M3: pedidos, stock concurrente e idempotencia de pedidos.
+- M3 cortes 1–3 implementados: bolsa invitada con edición ([ADR 0005](adr/0005-guest-cart-session.md)) y pedido simulado con sección crítica síncrona e idempotencia ([ADR 0006](adr/0006-order-acceptance-idempotency.md)). Pendiente en M3: contador en la cabecera, revisión de accesibilidad del recorrido completo y cierre del hito.
 - M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
@@ -47,9 +47,9 @@ La página llama al cliente tipado desde el servidor; Express consulta al provee
 
 Comercio es la autoridad sobre precios, stock y futura aceptación del pedido. El navegador nunca suministrará un precio autoritativo. El BFF no mantiene una segunda copia del inventario. EUR se representa como enteros seguros en céntimos.
 
-Direcciones y secretos quedan en servidor; las entradas del usuario no eligen URLs de proveedores. Los servicios locales escuchan en loopback. Todos los accesos actuales son lecturas; no hay pagos, cuentas, pedidos persistentes ni proveedores reales.
+Direcciones y secretos quedan en servidor; las entradas del usuario no eligen URLs de proveedores. Los servicios locales escuchan en loopback. Las escrituras (carrito y pedidos simulados) viven en memoria del proveedor ficticio; no hay pagos, cuentas, pedidos persistentes ni proveedores reales.
 
-Contratos públicos: [bff-openapi.json](../packages/contracts/bff-openapi.json). Contrato del proveedor: [openapi.json](../packages/contracts/openapi.json). El segundo también contiene un diseño de pedidos M3 todavía no implementado: la existencia de un esquema no demuestra una funcionalidad.
+Contratos públicos: [bff-openapi.json](../packages/contracts/bff-openapi.json). Contrato del proveedor: [openapi.json](../packages/contracts/openapi.json). El diseño de pedidos de M0 está implementado desde el corte 3 de M3.
 
 ## 4. M2: decisiones que deben preservarse
 
@@ -93,7 +93,7 @@ npm run test:e2e
 
 E2E necesita puertos 3000/4000/4100/4199 libres. Usa Next de producción y el BFF real con un proveedor controlable solo en `tests/support`. No mover sus controles de fallos a las rutas de la aplicación. Un único worker serializa los escenarios con estado compartido.
 
-Endpoints: BFF `/healthz`, `/api/products`, `/api/products/:id`, `/api/content/brand`, `POST /api/carts`, `GET /api/carts/:id`, `POST /api/carts/:id/items`, `PUT /api/carts/:id/items/:productId`; proveedor `/health`, `/products`, `/products/:id`, `/content/brand`, `POST /carts`, `GET /carts/:id`, `POST /carts/:id/lines`, `PUT /carts/:id/lines/:sku`.
+Endpoints: BFF `/healthz`, `/api/products`, `/api/products/:id`, `/api/content/brand`, `POST /api/carts`, `GET /api/carts/:id`, `POST /api/carts/:id/items`, `PUT /api/carts/:id/items/:productId`, `POST /api/orders`, `GET /api/orders/:id`; proveedor `/health`, `/products`, `/products/:id`, `/content/brand`, `POST /carts`, `GET /carts/:id`, `POST /carts/:id/lines`, `PUT /carts/:id/lines/:sku`, `POST /orders`, `GET /orders/:id`.
 
 ### Particularidades de la máquina de Codex
 
@@ -117,9 +117,9 @@ El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa 
 
 ## 7. Cómo continuar con M3
 
-Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). Siguiente: confirmación de pedido simulada. No introducir autenticación de cuentas.
+Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). El corte 3 añadió la confirmación de pedido con idempotencia. Siguiente: corte 4 (contador y revisión de accesibilidad). No introducir autenticación de cuentas.
 
-Antes de confirmar pedidos, definir y probar: cantidades enteras acotadas, IDs únicos, rechazo de campos de precio/total manipulados, recálculo de precios y validación de stock por comercio. La operación simulada debe aceptar todo o rechazar todo.
+Implementado y probado en el corte 3: cantidades enteras acotadas, IDs únicos, rechazo de campos de precio/total manipulados, recálculo de precios y validación de stock por comercio. La operación simulada debe aceptar todo o rechazar todo.
 
 Para el proveedor de un único proceso, comprobación/decremento de stock, creación del pedido y registro de idempotencia deben compartir una sección crítica síncrona. Dos confirmaciones simultáneas no pueden vender la última unidad dos veces. La misma clave/carga devuelve el mismo pedido; otra carga con la misma clave se rechaza. No reintentar escrituras sin estas garantías. El estado en memoria reinicia al reiniciar; producción necesitaría transacciones duraderas, fuera del alcance actual.
 
@@ -127,4 +127,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está en curso (cortes 1–2 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está en curso (cortes 1–3 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

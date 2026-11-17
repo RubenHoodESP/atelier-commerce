@@ -9,8 +9,11 @@ export const ERROR_STATUS = {
   PRODUCT_NOT_FOUND: 404,
   CART_NOT_FOUND: 404,
   CART_LINE_NOT_FOUND: 404,
+  ORDER_NOT_FOUND: 404,
   OUT_OF_STOCK: 409,
   CART_LIMIT_EXCEEDED: 409,
+  CART_EMPTY: 409,
+  IDEMPOTENCY_CONFLICT: 409,
   UPSTREAM_TIMEOUT: 504,
   UPSTREAM_UNAVAILABLE: 502,
   UPSTREAM_INVALID_RESPONSE: 502,
@@ -27,6 +30,8 @@ export type CommerceClient = {
   getCart: (query: CartQuery) => Promise<CartResult>;
   addCartItem: (query: CartQuery, input: CartItemInput) => Promise<CartResult>;
   setCartItemQuantity: (query: CartQuery, input: CartLineUpdate & { productId: string }) => Promise<CartResult>;
+  placeOrder: (input: PlaceOrderInput, idempotencyKey: string) => Promise<OrderResult>;
+  getOrder: (query: OrderQuery) => Promise<OrderResult>;
 };
 
 export const COLLECTIONS = ['horizon', 'meridian', 'nocturne'] as const;
@@ -106,9 +111,9 @@ export type CartLine = { productId: string; name: string; quantity: number; unit
 export type Cart = { id: string; lines: CartLine[]; itemCount: number; subtotal: Money };
 export type CartResult = { ok: true; cart: Cart } | Failure;
 
-const CART_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 export function isCartId(value: unknown): value is string {
-  return typeof value === 'string' && CART_ID.test(value);
+  return typeof value === 'string' && UUID.test(value);
 }
 export function isQuantity(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= CART_LIMITS.maxQuantity;
@@ -125,23 +130,49 @@ function isMoney(value: unknown): value is Money {
   return isRecord(value) && Object.keys(value).length === 2 && value.currency === 'EUR'
     && Number.isSafeInteger(value.amountMinor) && (value.amountMinor as number) >= 0;
 }
-function isCartLine(value: unknown): value is CartLine {
+export function isCartLine(value: unknown): value is CartLine {
   return isRecord(value) && isProductQuery({ id: value.productId })
     && typeof value.name === 'string' && value.name.length > 0 && value.name.length <= 200
     && isQuantity(value.quantity) && isMoney(value.unitPrice) && isMoney(value.lineTotal)
     && value.lineTotal.amountMinor === value.unitPrice.amountMinor * value.quantity;
 }
 // Totals must agree with the lines: a malformed cart is rejected, never repaired.
-export function isCart(value: unknown): value is Cart {
-  if (!isRecord(value) || !isCartId(value.id) || !Array.isArray(value.lines) || !isMoney(value.subtotal)) return false;
-  const lines: unknown[] = value.lines;
-  if (lines.length > CART_LIMITS.maxLines || !lines.every(isCartLine)) return false;
+function hasConsistentLines(lines: unknown, itemCount: unknown, total: Money): lines is CartLine[] {
+  if (!Array.isArray(lines) || lines.length > CART_LIMITS.maxLines || !lines.every(isCartLine)) return false;
   const valid = lines as CartLine[];
   return new Set(valid.map(line => line.productId)).size === valid.length
-    && value.itemCount === valid.reduce((sum, line) => sum + line.quantity, 0)
-    && value.subtotal.amountMinor === valid.reduce((sum, line) => sum + line.lineTotal.amountMinor, 0);
+    && itemCount === valid.reduce((sum, line) => sum + line.quantity, 0)
+    && total.amountMinor === valid.reduce((sum, line) => sum + line.lineTotal.amountMinor, 0);
+}
+export function isCart(value: unknown): value is Cart {
+  return isRecord(value) && isCartId(value.id) && isMoney(value.subtotal)
+    && hasConsistentLines(value.lines, value.itemCount, value.subtotal);
 }
 export function isCartResult(value: unknown): value is CartResult {
   if (!isRecord(value)) return false;
   return value.ok === true ? isCart(value.cart) : isProductResult(value) && value.ok === false;
+}
+
+// Simulated orders. Commerce re-prices and decrements stock atomically; the browser sends
+// only its cart (via the server) and an idempotency key.
+export type OrderQuery = { orderId: string };
+export type PlaceOrderInput = { cartId: string };
+export type OrderLine = CartLine;
+export type Order = { id: string; status: 'confirmed'; lines: OrderLine[]; itemCount: number; total: Money };
+export type OrderResult = { ok: true; order: Order } | Failure;
+
+export const isOrderId = isCartId;
+export function isIdempotencyKey(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9-]{16,100}$/.test(value);
+}
+export function isPlaceOrderInput(value: unknown): value is PlaceOrderInput {
+  return isRecord(value) && Object.keys(value).length === 1 && isCartId(value.cartId);
+}
+export function isOrder(value: unknown): value is Order {
+  return isRecord(value) && isOrderId(value.id) && value.status === 'confirmed' && isMoney(value.total)
+    && Array.isArray(value.lines) && value.lines.length > 0 && hasConsistentLines(value.lines, value.itemCount, value.total);
+}
+export function isOrderResult(value: unknown): value is OrderResult {
+  if (!isRecord(value)) return false;
+  return value.ok === true ? isOrder(value.order) : isProductResult(value) && value.ok === false;
 }

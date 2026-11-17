@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { randomUUID } from 'node:crypto';
 import type { Metadata } from 'next';
 import { getCommerce } from '../../lib/commerce';
 import { readCartId } from '../../lib/cart';
 import { formatPrice } from '../../lib/catalog';
 import { BagEditor } from '../../components/bag-editor';
+import { PlaceOrder } from '../../components/place-order';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Your bag | Atelier', robots: { index: false } };
@@ -40,9 +42,15 @@ export default async function CartPage() {
       <h1>Your bag</h1>
       <BagEditor lines={lines} subtotal={formatPrice(cart.subtotal.amountMinor)}
         summary={cart.itemCount === 1 ? '1 watch in your bag' : `${cart.itemCount} watches in your bag`} />
-      <p className="mt-6 text-sm text-muted">
-        Prices and availability are confirmed by commerce when an order is placed. Checkout is not available in this demonstration yet.
-      </p>
+      {lines.length > 0 && (
+        <>
+          {/* A new key per bag content: editing the bag remounts the form and discards the old key. */}
+          <PlaceOrder key={lines.map(line => `${line.productId}:${line.quantity}`).join(',')} initialKey={randomUUID()} />
+          <p className="mt-6 text-sm text-muted">
+            Commerce confirms prices and availability when the order is placed. This is a simulated order: no payment or personal data is taken.
+          </p>
+        </>
+      )}
     </main>
   );
 }

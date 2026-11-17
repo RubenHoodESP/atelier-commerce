@@ -1,10 +1,11 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { ERROR_STATUS, type CartResult, type ProductResult } from '@atelier/contracts';
+import { ERROR_STATUS, type CartResult, type OrderResult, type ProductResult } from '@atelier/contracts';
 import { getProduct, type ProviderSettings } from './product.js';
 import { getProducts, getBrandContent } from './catalog.js';
 import { addCartItem, createCart, getCart, setCartItemQuantity } from './cart.js';
+import { getOrder, placeOrder } from './orders.js';
 
 export function createMiddlewareServer(settings: ProviderSettings) {
   const provider = new URL(settings.providerUrl);
@@ -44,8 +45,8 @@ export function createMiddlewareServer(settings: ProviderSettings) {
     } catch (error) { next(error); }
   });
   // Cart routes are called by the Next server only; the browser never reaches the BFF.
-  const invalid = (res: express.Response) => res.status(400).json({ ok: false, error: { code: 'INVALID_INPUT', message: 'Invalid cart request.', requestId: res.locals.requestId } });
-  const send = (res: express.Response, result: CartResult, successStatus = 200) => {
+  const invalid = (res: express.Response) => res.status(400).json({ ok: false, error: { code: 'INVALID_INPUT', message: 'Invalid request.', requestId: res.locals.requestId } });
+  const send = (res: express.Response, result: CartResult | OrderResult, successStatus = 200) => {
     res.status(result.ok ? successStatus : ERROR_STATUS[result.error.code]).json(result);
   };
   app.post('/api/carts', async (req, res, next) => {
@@ -70,6 +71,19 @@ export function createMiddlewareServer(settings: ProviderSettings) {
     try {
       if (Object.keys(req.query).length) { invalid(res); return; }
       send(res, await setCartItemQuantity(settings, req.params.id, req.params.productId, req.body, res.locals.requestId));
+    } catch (error) { next(error); }
+  });
+  app.post('/api/orders', express.json({ limit: '1kb', strict: true }), async (req, res, next) => {
+    try {
+      if (Object.keys(req.query).length) { invalid(res); return; }
+      const { result, created } = await placeOrder(settings, req.body, req.get('Idempotency-Key'), res.locals.requestId);
+      send(res, result, created ? 201 : 200);
+    } catch (error) { next(error); }
+  });
+  app.get('/api/orders/:id', async (req, res, next) => {
+    try {
+      if (Object.keys(req.query).length) { invalid(res); return; }
+      send(res, await getOrder(settings, req.params.id, res.locals.requestId));
     } catch (error) { next(error); }
   });
   app.use((_req, res) => {

@@ -6,9 +6,9 @@
 - npm run lint: oxlint 1.91.0 with `.oxlintrc.json`; correctness rules are errors, suspicious rules are warnings and warnings fail the command. Covers React hooks (rules-of-hooks, exhaustive-deps, set-state-in-effect), Next, jsx-a11y, import, promise and Vitest rules. It is syntactic only: no type-aware rules.
 - npm run typecheck and npm run build: shared package, services and Next compilation.
 - npm test: both OpenAPI 3.1 documents, domain guards, typed-client invalid JSON/status/redaction/timeout tests and real client -> Express -> HTTP provider tests.
-- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. M2 also covers URL/history/detail return, mobile keyboard navigation, native GET without JavaScript, pending feedback/focus, empty results, commercial retry and editorial fallback. M3 adds the bag journey with and without JavaScript, stock-limit messages, the HttpOnly cookie, cross-origin Server Action rejection, a non-cacheable bag page, and quantity change/removal with and without JavaScript, including stock rejection and focus after removal. No order coverage exists yet.
+- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. M2 also covers URL/history/detail return, mobile keyboard navigation, native GET without JavaScript, pending feedback/focus, empty results, commercial retry and editorial fallback. M3 adds the bag journey with and without JavaScript, stock-limit messages, the HttpOnly cookie, cross-origin Server Action rejection, a non-cacheable bag page, and quantity change/removal with and without JavaScript, including stock rejection and focus after removal. M3 order E2E covers bag → confirmation with stock decrement and an emptied bag, rejection when another guest took the last unit, real 404 for unknown orders, native submission and a double submission with one idempotency key creating one order.
 
-HTTP cart tests cover commerce-calculated totals, quantity bounds, rejected price/total fields, malformed and oversized bodies, out-of-stock and limit conflicts, unknown carts/products, cart isolation, bounded eviction, inconsistent provider totals, a non-retried write timeout, and set-quantity semantics (repeatable, 0 removes, increase-only stock check, missing line/cart, invalid quantities and extra fields). HTTP tests also exercise normalization, missing/invalid identifiers, upstream failures, malformed responses, timeout, unexpected queries, request-ID propagation and malformed URL encoding. Test-only fixtures control failures. Do not replace these tests with mocks merely because an execution environment blocks loopback networking. See [STATUS](STATUS.md) for actual results.
+HTTP order tests cover commerce re-pricing, stock decrement visible in catalog, same key/body replay, key conflict, all-or-nothing rejection, two concurrent orders for the last unit, concurrent same-key requests, missing/invalid keys, empty or unknown carts, injected price/item fields, provider-side input validation, per-instance inventory and a non-retried timeout. A mutation check (an injected await between stock check and decrement) makes both concurrency tests fail. HTTP cart tests cover commerce-calculated totals, quantity bounds, rejected price/total fields, malformed and oversized bodies, out-of-stock and limit conflicts, unknown carts/products, cart isolation, bounded eviction, inconsistent provider totals, a non-retried write timeout, and set-quantity semantics (repeatable, 0 removes, increase-only stock check, missing line/cart, invalid quantities and extra fields). HTTP tests also exercise normalization, missing/invalid identifiers, upstream failures, malformed responses, timeout, unexpected queries, request-ID propagation and malformed URL encoding. Test-only fixtures control failures. Do not replace these tests with mocks merely because an execution environment blocks loopback networking. See [STATUS](STATUS.md) for actual results.
 
 E2E uses production Next and a real BFF with an isolated controllable HTTP provider; fault controls are test-only. One worker serializes shared fixture scenarios. The catalog avoids a shared loading boundary so initial HTML works without JavaScript and unknown detail retains HTTP 404.
 
@@ -32,14 +32,14 @@ ESLint with `eslint-config-next` was rejected for now: it pulls typescript-eslin
 
 `.claude/settings.json` runs `.claude/hooks/lint-edited-file.mjs` after Claude's Edit/Write calls. It lints only the edited JS/TS file and returns findings to Claude (exit 2); it does not replace `npm run lint` or CI. It also allows read-only git and the project check scripts without prompting, and denies force pushes, hard resets, `git clean`, `--force`/`--legacy-peer-deps` installs and reading local `.env` files. Deny rules are a guardrail for the agent, not a security boundary.
 
-## Risks for later milestones
+## Risks and verification status
 
 | Risk | Verification |
 | --- | --- |
-| Manipulated price | Reject price/total fields; valid order charged in exact server-owned cents |
-| Overselling | Concurrent last-unit orders: one success, stock never negative |
-| Duplicate confirmation | Same key/body returns same order; changed body conflicts |
-| Invalid quantities | Boundary cases reject without inventory mutation |
+| Manipulated price | Implemented: price/total/item fields rejected; order priced by commerce in cents |
+| Overselling | Implemented: concurrent last-unit orders give one success, stock never negative |
+| Duplicate confirmation | Implemented: same key/body returns same order; changed body conflicts |
+| Invalid quantities | Implemented: boundary cases rejected without cart or inventory mutation |
 | URL/UI drift | Filters survive reload and navigation |
 | Inaccessible journey | Keyboard catalog -> detail -> cart -> confirmation; focus and announcements |
 | Slow/failed provider | Stable 502/504, safe envelope and correlation ID |

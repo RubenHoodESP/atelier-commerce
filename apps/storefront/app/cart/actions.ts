@@ -1,9 +1,9 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { CART_LIMITS, isProductQuery, type CartResult, type ErrorCode } from '@atelier/contracts';
+import { CART_LIMITS, isIdempotencyKey, isProductQuery, type CartResult, type ErrorCode, type OrderResult } from '@atelier/contracts';
 import { getCommerce } from '../../lib/commerce';
-import { readCartId, writeCartId } from '../../lib/cart';
+import { clearCartId, readCartId, writeCartId } from '../../lib/cart';
 
 export type AddToBagState = { message: string } | null;
 
@@ -70,4 +70,31 @@ export async function updateBagItem(previous: UpdateBagState, formData: FormData
   if (result.error.code === 'OUT_OF_STOCK') return reply('That quantity is not available.');
   if (result.error.code === 'CART_NOT_FOUND' || result.error.code === 'CART_LINE_NOT_FOUND') return reply('Your bag has changed. Please review it.', true);
   return reply(UNAVAILABLE);
+}
+
+export type PlaceOrderState = { message: string; key: string } | null;
+
+// The idempotency key is rendered with the bag and returned unchanged on every failure, so a
+// retry after an ambiguous failure (e.g. a timeout) replays the same order instead of creating
+// another. Failures do not revalidate the page for the same reason.
+export async function placeOrder(_previous: PlaceOrderState, formData: FormData): Promise<PlaceOrderState> {
+  const key = formData.get('idempotencyKey');
+  if (!isIdempotencyKey(key)) return { message: 'Please reload your bag and try again.', key: '' };
+  const cartId = await readCartId();
+  if (!cartId) return { message: 'Your bag is empty.', key };
+  let result: OrderResult;
+  try {
+    result = await getCommerce().placeOrder({ cartId }, key);
+  } catch {
+    return { message: 'We could not confirm your order. Please try again; you will not be charged twice.', key };
+  }
+  if (!result.ok) {
+    const message = result.error.code === 'OUT_OF_STOCK' ? 'Some watches are no longer available in that quantity. Please review your bag.'
+      : result.error.code === 'CART_EMPTY' || result.error.code === 'CART_NOT_FOUND' ? 'Your bag is empty.'
+      : result.error.code === 'IDEMPOTENCY_CONFLICT' ? 'Your bag changed. Please reload it and try again.'
+      : 'We could not confirm your order. Please try again; you will not be charged twice.';
+    return { message, key };
+  }
+  await clearCartId();
+  redirect(`/orders/${result.order.id}`);
 }
