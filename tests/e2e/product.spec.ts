@@ -7,7 +7,7 @@ test('renders provider data in HTML through Next and real Alokai', async ({ page
   await page.getByRole('link', { name: /Explore Horizon/ }).click();
   await expect(page.getByRole('heading', { name: 'Atelier Horizon' })).toBeVisible();
   await expect(page.getByText('3 available', { exact: true })).toBeVisible();
-  await expect(page.locator('.price')).toHaveText('\u20ac1,250');
+  await expect(page.locator('.price')).toHaveText('\u20ac1,250.00');
   await page.screenshot({ path: 'test-results/m1-product.png', fullPage: true });
 });
 test('unknown product has an HTTP 404 and a useful page', async ({ page, request }) => {

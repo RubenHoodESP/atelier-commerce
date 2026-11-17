@@ -2,7 +2,7 @@
 
 ## Topology
 
-This is the target architecture, not a deployed system.
+M1 implements product reads locally through the official public Alokai SDK 3.4.2 and middleware 5.4.1. Cart, content and orders in this diagram remain targets. Connect 2.5 requires credentials; see [ADR 0003](adr/0003-public-alokai-integration.md).
 
 ```mermaid
 flowchart TD
@@ -53,11 +53,11 @@ Normalize domain and upstream errors into a stable `{ code, message, requestId, 
 | Provider unavailable | 502 | `UPSTREAM_UNAVAILABLE` |
 | Provider timeout | 504 | `UPSTREAM_TIMEOUT` |
 
-Alokai's actual transport may wrap statuses differently. Verify mapping in M1 rather than assuming an SDK method is a REST GET endpoint. The OpenAPI file specifies the demo provider contract, not the generated Alokai wire protocol.
+The table is the target REST mapping, not M1's RPC status behavior. The public SDK posts arguments to `/commerce/getProduct`; the middleware returns a typed `ProductResult` with HTTP 200 for resolved business/infrastructure failures. Next renders unknown/invalid products with `notFound()` and other failures with a retry message. Transport exceptions reach its error boundary. The OpenAPI document specifies the demo provider contract, not Alokai's RPC wire protocol.
 
 ## Deployment and operation
 
-Local target ports: storefront 3000, middleware 4000, mock providers 4100. These are proposed values. Add `.env.example` when real configuration exists. Bind mock admin/failure injection to test mode only. Log request ID, operation, duration and outcome, without cookies, tokens or customer data.
+Local ports: storefront 3000, middleware 4000, mock provider 4100, all bound to loopback. `.env.example` lists server configuration; no `NEXT_PUBLIC_` provider secrets. Product reads explicitly use `no-store`; provider timeout defaults to 1500 ms and SDK timeout to 2500 ms. Failure injection exists only inside integration tests. Request IDs propagate upstream and appear in typed failures; structured duration/outcome telemetry remains future work.
 
 First implementation uses local processes. Add containers only after the same commands work without Docker. Production deployment, persistence, authentication provider and payments are separate decisions.
 

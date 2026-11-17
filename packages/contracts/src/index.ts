@@ -19,7 +19,7 @@ export function isProduct(value: unknown): value is Product {
   if (!isRecord(value) || !isRecord(value.price)) return false;
   return typeof value.id === 'string' && /^watch-[0-9]{3}$/.test(value.id)
     && typeof value.name === 'string' && value.name.length > 0 && value.name.length <= 200
-    && typeof value.collection === 'string' && value.collection.length > 0
+    && typeof value.collection === 'string' && value.collection.length > 0 && value.collection.length <= 80
     && Number.isSafeInteger(value.stock) && (value.stock as number) >= 0
     && value.price.currency === 'EUR' && Number.isSafeInteger(value.price.amountMinor)
     && (value.price.amountMinor as number) >= 0;
