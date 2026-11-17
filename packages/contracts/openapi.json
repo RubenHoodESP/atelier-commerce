@@ -2,11 +2,76 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Mock Commerce Provider",
-    "version": "0.1.0",
-    "description": "Local mock provider contract: product GET is implemented in M1; order POST remains planned for M3. Product and Money schemas also document the normalized domain model. The separate bff-openapi.json describes the public integration API."
+    "version": "0.2.0",
+    "description": "Local fictional commerce and editorial modules. Product list, detail and brand content implemented; order POST remains planned for M3."
   },
   "servers": [{ "url": "http://127.0.0.1:4100", "description": "Local fictional provider" }],
   "paths": {
+    "/products": {
+      "get": {
+        "operationId": "getProducts",
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "horizon",
+                "meridian",
+                "nocturne"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "featured",
+                "price-asc",
+                "price-desc",
+                "name-asc"
+              ],
+              "default": "featured"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCatalog"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or repeated catalog query"
+          }
+        }
+      }
+    },
+    "/content/brand": {
+      "get": {
+        "operationId": "getBrandContent",
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderBrand"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/products/{id}": {
       "get": {
         "operationId": "getProduct",
@@ -38,6 +103,52 @@
   },
   "components": {
     "schemas": {
+      "ProviderCatalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "count"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderProduct"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "ProviderBrand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hero_title",
+          "hero_text",
+          "brand_story"
+        ],
+        "properties": {
+          "hero_title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "hero_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "brand_story": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
       "ProviderProduct": {
         "type": "object", "additionalProperties": false,
         "required": ["sku", "display_name", "collection_name", "unit_price", "available_units"],

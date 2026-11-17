@@ -1,4 +1,4 @@
-name: M1 product integration
+name: Commerce integration
 
 on:
   push:

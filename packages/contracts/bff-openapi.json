@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Express Integration API",
-    "version": "0.1.0",
-    "description": "Public normalized REST boundary. Provider-specific fields remain behind this API. Product reads only; writes are future work."
+    "version": "0.2.0",
+    "description": "Normalized product, catalog and editorial REST boundary. Writes remain planned for M3."
   },
   "servers": [
     {
@@ -78,6 +78,263 @@
           },
           "404": {
             "description": "PRODUCT_NOT_FOUND",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UPSTREAM_UNAVAILABLE or UPSTREAM_INVALID_RESPONSE",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "UPSTREAM_TIMEOUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "operationId": "getProducts",
+        "description": "Unexpected or repeated query parameters are rejected. Catalog totals equal the returned list length; duplicate product IDs are invalid.",
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "horizon",
+                "meridian",
+                "nocturne"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "featured",
+                "price-asc",
+                "price-desc",
+                "name-asc"
+              ],
+              "default": "featured"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UPSTREAM_UNAVAILABLE or UPSTREAM_INVALID_RESPONSE",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "UPSTREAM_TIMEOUT",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFailure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content/brand": {
+      "get": {
+        "operationId": "getBrandContent",
+        "description": "Unexpected or repeated query parameters are rejected. Catalog totals equal the returned list length; duplicate product IDs are invalid.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT",
             "headers": {
               "X-Request-ID": {
                 "description": "Server-generated correlation ID",
@@ -288,6 +545,74 @@
                 "minLength": 1
               }
             }
+          }
+        }
+      },
+      "CatalogSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "products",
+          "total"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "BrandContent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "headline",
+          "intro",
+          "story"
+        ],
+        "properties": {
+          "headline": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "intro": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "story": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "ContentSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "content"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "content": {
+            "$ref": "#/components/schemas/BrandContent"
           }
         }
       }

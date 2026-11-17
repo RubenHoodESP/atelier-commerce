@@ -1,59 +1,57 @@
 # Atelier Commerce
 
-A small composable watch storefront for learning frontend engineering and explaining end-to-end decisions in interviews. Fictional brand; demonstration only.
+A fictional composable watch storefront for learning frontend engineering and explaining end-to-end decisions. Demonstration only.
 
-**M1 uses Express:** Next.js -> typed REST client -> Express BFF -> local HTTP product provider. Product SSR, runtime validation, normalization, bounded calls and safe HTTP errors are implemented. All integration dependencies are available from public npm. No vendor account or private package registry is required.
+**M2:** 12 watches across Horizon, Meridian and Nocturne; server-rendered catalog and detail pages; collection and sorting in the URL; editorial HTTP integration with local fallback; Tailwind styling and local SVG illustrations. Cart and simulated orders remain M3.
 
 ## Run locally
 
-CI baseline: Node **22.23.5**, npm **10.9.9**. The latest local build also passed on Node 24.22.1/npm 11.19.1. From the repository root, use these commands in PowerShell:
+Baseline: Node **22.23.5**, npm **10.9.9**. From the repository root:
 
-```powershell
-npm.cmd ci
-npm.cmd run dev
+```sh
+npm ci
+npm run dev
 ```
 
-Open http://127.0.0.1:3000/products/watch-001. The command builds TypeScript services and starts provider (4100), Express BFF (4000) and Next (3000), all on loopback. Ctrl+C stops the stack. Service source changes currently require restarting; Next UI reloads in development. Other shells can use npm without the .cmd suffix.
+In PowerShell use `npm.cmd` if script execution policy blocks `npm`. Visit the application's `/products` route. The command builds and starts provider (4100), Express BFF (4000) and Next (3000), on loopback. Ctrl+C stops the stack. Service source changes require restarting; Next UI reloads in development.
 
-Defaults need no configuration. Copy [.env.example](.env.example) to .env for overrides; these settings stay on the server. COMMERCE_API_URL points to the BFF /api base, while PROVIDER_URL points to the vendor mock. For production: npm run build, then npm start. Providers are not required during the build.
+Defaults need no configuration or secrets. Optional overrides are in [.env.example](.env.example). All provider addresses stay on the server. Production: `npm run build`, then `npm start`. Providers are not needed during compilation.
 
 ## Verify
 
-```powershell
-npm.cmd run check
-npm.cmd run typecheck
-npm.cmd test
-npm.cmd run build
-npx.cmd playwright install chromium
-npm.cmd run test:e2e
+```sh
+npm run check
+npm run typecheck
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
-CI uses npm ci and runs structural checks, typecheck, contract/client/HTTP tests, production build and Chromium E2E. See [exact evidence and restrictions](docs/STATUS.md). Public REST: GET http://127.0.0.1:4000/api/products/watch-001. Failure responses have an explicit 400/404/500/502/504 status and safe typed JSON. BFF health: /healthz; provider health: /health.
+E2E starts production Next, the real BFF and an isolated test provider; ports 3000, 4000, 4100 and test-control port 4199 must be free. Fault controls exist only in the test harness. Cloud validation can use the ignored `.local/playwright.cloud.config.ts` with the image's Chromium when browser downloads are restricted. See [current evidence](docs/STATUS.md).
 
-## Start here
+## Architecture and behavior
 
-- [Development plan, in Spanish](docs/PLAN.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Stack](docs/STACK.md)
-- [Current state](docs/STATUS.md)
-- [Quality](docs/QUALITY.md)
-- [Interview practice](docs/INTERVIEW.md)
-- [Express decision](docs/adr/0003-express-bff.md)
-- [Agent instructions](AGENTS.md)
+Next Server Component -> typed REST client -> Express BFF -> fictional HTTP commerce/editorial modules. The BFF validates and normalizes untrusted JSON. Commerce owns prices and stock; the UI never supplies authoritative prices. Money uses integer cents in EUR. Calls have fresh timeouts, safe errors, no automatic retries and `no-store` responses.
 
-Run node scripts/context.mjs integration (or frontend, quality, planning) to locate relevant context selectively.
+- `GET /api/products`: optional collection and sort parameters, normalized list and total.
+- `GET /api/products/:id`: normalized detail; missing products return 404.
+- `GET /api/content/brand`: normalized editorial content. Next uses local fallback on editorial failure.
+- BFF health `/healthz`; provider health `/health`.
 
-## Repository areas
+Catalog example: `/products?collection=horizon&sort=price-asc`. Filters update automatically, work with native GET without JavaScript, and survive reload/back/detail navigation. Invalid page parameters are canonicalized; invalid API parameters return 400.
 
-| Area | Responsibility |
-| --- | --- |
-| apps/storefront | Next App Router, React, server-only API configuration, initial CSS |
-| apps/middleware | Express REST BFF, normalization, correlation and timeouts |
-| apps/mock-services | Fictional vendor-shaped product provider |
-| packages/contracts | Domain types/guards, typed fetch client, provider and BFF OpenAPI |
-| docs/adr | Decisions and limitations |
-| .agents/skills | Three versioned project workflows |
+## Continue with Claude
 
-Next: M2 catalog, URL filters, brand content and Tailwind. M3 adds cart/orders. No real enterprise provider, identity or payment is connected. Lint, scanners and measured accessibility/performance audits remain future work.
+Start with [CLAUDE.md](CLAUDE.md) and the [complete handoff](docs/CLAUDE_HANDOFF.md), including setup, architectural decisions, evidence, limitations and the next M3 task.
 
-[Repository](https://github.com/RubenHoodESP/atelier-commerce) is private; default branch master. Do not upload job PDFs, CVs, credentials or personal notes. See [publication](docs/PUBLISH.md).
+## Project documents
+
+- [Plan](docs/PLAN.md), [architecture](docs/ARCHITECTURE.md), [quality](docs/QUALITY.md)
+- [Current state](docs/STATUS.md), [stack](docs/STACK.md), [interview practice](docs/INTERVIEW.md)
+- [Express decision](docs/adr/0003-express-bff.md), [catalog/content decision](docs/adr/0004-catalog-url-and-content.md)
+- [Agent agreement](AGENTS.md), [publication](docs/PUBLISH.md)
+
+Use `node scripts/context.mjs frontend` (or integration, quality, planning) for focused context. Project workflows remain versioned in `.agents/skills`.
+
+No real payments, user accounts, persistent orders or enterprise providers are connected. M3 adds guest cart and simulated orders; M4 adds lint/scanners and measured audits. The repository is private. Do not upload personal documents or credentials.

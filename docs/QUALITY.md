@@ -5,9 +5,11 @@
 - npm run check: JSON, local links, skills, recorded versions and contract invariants.
 - npm run typecheck and npm run build: shared package, services and Next compilation.
 - npm test: both OpenAPI 3.1 documents, domain guards, typed-client invalid JSON/status/redaction/timeout tests and real client -> Express -> HTTP provider tests.
-- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. No E2E cart/order coverage exists yet.
+- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. M2 also covers URL/history/detail return, mobile keyboard navigation, native GET without JavaScript, pending feedback/focus, empty results, commercial retry and editorial fallback. No cart/order coverage exists yet.
 
 HTTP tests exercise normalization, missing/invalid identifiers, upstream failures, malformed responses, timeout, unexpected queries, request-ID propagation and malformed URL encoding. Test-only fixtures control failures. Do not replace these tests with mocks merely because an execution environment blocks loopback networking. See [STATUS](STATUS.md) for actual results.
+
+E2E uses production Next and a real BFF with an isolated controllable HTTP provider; fault controls are test-only. One worker serializes shared fixture scenarios. The catalog avoids a shared loading boundary so initial HTML works without JavaScript and unknown detail retains HTTP 404.
 
 ## CI
 

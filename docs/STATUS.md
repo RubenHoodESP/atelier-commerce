@@ -1,16 +1,34 @@
 # Current state
 
-- **M1 Express migration implemented and validated.** Flow: Next Server Component -> server-only client configuration -> typed REST client -> Express BFF -> fictional vendor HTTP provider.
-- External integration SDK/middleware and CommonJS bridge removed. npm removed 20 packages; no retired SDK packages or private-registry URLs remain in manifests/lockfile or installed dependency packages. Project registry configuration and local .env keys were migrated where present. No vendor account is required.
-- GET /api/products/:id returns ProductResult and actual HTTP 200/400/404/500/502/504 statuses. Runtime guards validate input, provider JSON, public response JSON and status agreement. Unexpected queries and malformed URL encoding return safe 400 responses. Errors hide raw bodies/stacks and correlate public/upstream request IDs.
-- Preserved: product SSR, 404/retry UI, integer cents, no-store reads, normalization and bounded calls. COMMERCE_API_URL defaults to http://127.0.0.1:4000/api; client timeout is fresh per call (2500 ms default), provider 1500 ms. Configuration remains server-only.
-- Express stays on tested 4.22.3; Next 16.4.6, React 19.3.1 and TypeScript 7.0.2 unchanged. npm regenerated the lockfile offline; it was not hand-edited. body-parser remains only as an Express transitive dependency.
-- **Local validation:** structural checks, typecheck, production build and 9 client/contract tests passed on Node 24.22.1/npm 11.19.1. Restricted execution-host loopback previously returned EACCES; no local full HTTP/browser success is claimed.
-- **Full CI validation:** clean npm ci, structural checks, typecheck, **19 Vitest tests passed** (3 contract/guards, 6 client, 10 real HTTP integration), production build and **2 Chromium E2E tests passed** on Node 22.23.5/npm 10.9.9. Evidence: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. The final evidence-only documentation update is checked again on the PR.
-- Tests cover normalization, missing/invalid identifiers, 503 redaction, invalid provider data, provider timeout, unexpected query fields, correlation, malformed URL encoding, invalid public response/status, client timeout and safe transport errors. Browser checks initial HTML, navigation, price/stock and HTTP 404.
-- Published through PR #1 on feat/m1-product-integration. Master history preserved. Three project-local workflows are versioned; no personal/global installation claim.
-- Pending: catalog/Tailwind/content (M2), cart/orders (M3), lint/scanners and measured audits (M4). No persistence, auth, real payments or enterprise services are connected.
+- **M0–M2 implemented; M3 is next.** The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
+- Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
+- Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
+- Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M2 validation in the cloud machine
+
+Node **22.23.5**, npm **10.9.9**:
+
+- `npm ci --no-audit --no-fund`: clean lockfile installation succeeded.
+- `npm run check` and `npm run typecheck`: passed.
+- `npm test`: **47 tests passed in 5 files**, including all 19 M1 tests and catalog, URL, content and client-response cases.
+- `npm run build`: passed; the final storefront build also passed after the streaming/focus corrections. No provider is required during compilation.
+- `npx --no-install playwright test --config=.local/playwright.cloud.config.ts`: **9 E2E tests passed**, using system Chromium **156.0.8078.79** against production Next, the real BFF and a controllable test-only HTTP provider. Covers SSR, filter/sort/history/return, 360 px layout and keyboard, empty/retry/editorial failure, pending feedback/focus, native GET without JavaScript and both M1 E2E cases.
+- Catalog and mobile screenshots were inspected. These checks are not full accessibility, security or performance audits.
+
+The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-managed Chromium was not tested in this M2 run. Standard CI still installs the managed browser. These are local M2 results; no new M2 CI success or environment publication is claimed. See the publication record below for verified GitHub state.
+
+## Historical evidence and limits
+
+M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
+
+Cart, orders, stock writes, sessions and idempotency remain **M3**. Lint, SonarQube, Snyk and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+
+## Publication and handoff
+
+M2 and the Claude handoff are prepared for publication to GitHub master. Verify publication by comparing the checkout commit with `git ls-remote origin refs/heads/master`; a local commit alone is not remote evidence. The cloud environment is outside this publication. Claude starts at [CLAUDE.md](../CLAUDE.md) and the [handoff](CLAUDE_HANDOFF.md).
 
 ## Next action
 
-Review the Express M1 PR, then resume M2 catalog and URL filters. Rehearse the request path and alter a fixture without AI before expanding the feature set. Use npm.cmd ci / npm.cmd run dev in PowerShell and open /products/watch-001. See PLAN.md and INTERVIEW.md.
+Review the M2 diff and its [decisions](adr/0004-catalog-url-and-content.md), rehearse catalog navigation and failure cases, then implement the guest cart and simulated order acceptance. Preserve commerce ownership of prices/stock, server-side session ownership and idempotency guarantees.

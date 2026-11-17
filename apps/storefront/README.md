@@ -1,7 +1,9 @@
-# Storefront boundary
+# Storefront
 
-Next App Router/React renders /products/watch-001 on the server. lib/commerce.ts imports server-only and supplies trusted COMMERCE_API_URL configuration to the typed fetch client from @atelier/contracts/client. The shared client validates response bodies and HTTP status agreement, with a fresh timeout per request. No provider URL reaches browser bundles.
+Next Server Components render the editorial home, `/products` catalog and `/products/[id]` detail. Configuration is server-only. The catalog loads commerce and editorial content concurrently, retaining real products with a local editorial fallback if content fails.
 
-Unknown products use Next's 404 page. Provider failures produce retry UI; transport/protocol errors reach the error boundary. The initial illustration is inline SVG; the scaffold uses CSS. Catalog, URL filters and Tailwind are planned for M2; cart and writes for M3.
+Collection/sort state lives in the URL. A small Client Component progressively enhances a native GET form with automatic navigation, transition announcements and disabled controls while pending. Reload, history and the detail return link preserve selection. Unknown, repeated or invalid page query parameters are canonicalized.
 
-Run npm ci then npm run dev from the root (npm.cmd in PowerShell). Open http://127.0.0.1:3000. See [plan](../../docs/PLAN.md) and [decision](../../docs/adr/0003-express-bff.md).
+Tailwind 4/PostCSS tokens maintain the warm Atelier palette, editorial type, keyboard focus and responsive grids. Local SVG illustrations have product-specific labels. Out-of-stock watches remain viewable; no purchase controls exist yet.
+
+Commerce errors expose retry; transport/protocol failures reach the error boundary. Unknown products produce 404. Catalog loading, empty, failure and editorial fallback are covered by tests. Cart/orders remain M3 and full audits M4.

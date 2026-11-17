@@ -1,6 +1,6 @@
 # Architecture
 
-M1 implements product reads through a typed REST client and Express BFF. Catalog, content, cart and orders remain planned.
+M2 implements product detail, catalog and editorial reads through typed REST clients and Express BFF. Guest cart and orders remain M3.
 
 ```mermaid
 flowchart TD
@@ -8,7 +8,7 @@ flowchart TD
   N --> C["Typed REST client"]
   C --> E["Express BFF: validation and adapters"]
   E --> P["Mock commerce provider"]
-  E -.-> F["Future content provider"]
+  E --> F["Editorial module in local provider"]
   T["Integration and contract tests"] -.-> E
   T -.-> P
 ```
@@ -23,6 +23,10 @@ flowchart TD
 ## Implemented product request
 
 Next calls getCommerce().getProduct({id}). The shared client sends GET /api/products/:id to Express and validates JSON plus status. The BFF validates the identifier and rejects unexpected query parameters, calls the configured provider, validates its shape and returns normalized data. Provider-specific fields never reach the page.
+
+M2 adds GET /api/products with validated collection/sort parameters, one provider list call and a complete normalized products/total result. The provider filters/sorts and shares fixtures with detail; malformed items, count disagreement or duplicate IDs invalidate the whole result. GET /api/content/brand exposes a separate editorial contract. Next reads catalog/content concurrently; editorial failure falls back locally, while commerce failures retain error/retry UI.
+
+Catalog URL state is canonical and shared across native GET and enhanced navigation. A small Client Component controls filter transitions and focus; it does not duplicate filters in React state. Loading feedback is local to the transition. A shared route loading boundary is intentionally absent to preserve no-JavaScript HTML and real detail 404s. See [M2 decision](adr/0004-catalog-url-and-content.md).
 
 The public ProductResult is either {ok:true,product} or {ok:false,error:{code,message,requestId}}. Errors use HTTP 400 INVALID_INPUT, 404 PRODUCT_NOT_FOUND, 502 UPSTREAM_UNAVAILABLE/UPSTREAM_INVALID_RESPONSE, 504 UPSTREAM_TIMEOUT, or 500 INTERNAL_ERROR. The public OpenAPI contract is bff-openapi.json; openapi.json describes the separate vendor provider.
 

@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { ERROR_STATUS, type ProductResult } from '@atelier/contracts';
 import { getProduct, type ProviderSettings } from './product.js';
+import { getProducts, getBrandContent } from './catalog.js';
 
 export function createMiddlewareServer(settings: ProviderSettings) {
   const provider = new URL(settings.providerUrl);
@@ -17,6 +18,22 @@ export function createMiddlewareServer(settings: ProviderSettings) {
     next();
   });
   app.get('/healthz', (_req, res) => { res.json({ status: 'ok' }); });
+  app.get('/api/products', async (req, res, next) => {
+    try {
+      const result = await getProducts(settings, req.query, res.locals.requestId);
+      res.status(result.ok ? 200 : ERROR_STATUS[result.error.code]).json(result);
+    } catch (error) { next(error); }
+  });
+  app.get('/api/content/brand', async (req, res, next) => {
+    try {
+      if (Object.keys(req.query).length) {
+        res.status(400).json({ ok: false, error: { code: 'INVALID_INPUT', message: 'Invalid request.', requestId: res.locals.requestId } });
+        return;
+      }
+      const result = await getBrandContent(settings, res.locals.requestId);
+      res.status(result.ok ? 200 : ERROR_STATUS[result.error.code]).json(result);
+    } catch (error) { next(error); }
+  });
   app.get('/api/products/:id', async (req, res, next) => {
     try {
       // Reject unexpected query fields instead of accepting provider URLs/prices.

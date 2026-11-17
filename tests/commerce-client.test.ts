@@ -37,3 +37,22 @@ describe('typed REST response boundary', () => {
     await expect(bounded.getProduct({ id: 'watch-001' })).rejects.toBeInstanceOf(CommerceTransportError);
   });
 });
+
+describe('catalog and content transport guards', () => {
+  it('sends canonical catalog queries and accepts validated empty results', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true, products: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await client().getProducts({ collection: 'horizon', sort: 'price-asc' })).toEqual({ ok: true, products: [], total: 0 });
+    expect(String(fetchMock.mock.calls[0]![0])).toBe('http://127.0.0.1:4000/api/products?collection=horizon&sort=price-asc');
+  });
+  it('rejects duplicates and inconsistent totals at the public response boundary', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ok: true, products: [product, product], total: 2 })));
+    await expect(client().getProducts()).rejects.toBeInstanceOf(CommerceTransportError);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ok: true, products: [product], total: 0 })));
+    await expect(client().getProducts()).rejects.toBeInstanceOf(CommerceTransportError);
+  });
+  it('rejects a successful catalog envelope with a failing HTTP status', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ok: true, products: [], total: 0 }, { status: 502 })));
+    await expect(client().getProducts()).rejects.toBeInstanceOf(CommerceTransportError);
+  });
+});

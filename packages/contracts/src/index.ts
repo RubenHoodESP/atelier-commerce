@@ -15,7 +15,51 @@ export type ErrorCode = keyof typeof ERROR_STATUS;
 export type ProductResult =
   | { ok: true; product: Product }
   | { ok: false; error: { code: ErrorCode; message: string; requestId: string } };
-export type CommerceClient = { getProduct: (query: ProductQuery) => Promise<ProductResult> };
+export type CommerceClient = {
+  getProduct: (query: ProductQuery) => Promise<ProductResult>;
+  getProducts: (query?: CatalogQuery) => Promise<CatalogResult>;
+};
+
+export const COLLECTIONS = ['horizon', 'meridian', 'nocturne'] as const;
+export const SORTS = ['featured', 'price-asc', 'price-desc', 'name-asc'] as const;
+export type CatalogQuery = { collection?: typeof COLLECTIONS[number]; sort?: typeof SORTS[number] };
+export type Failure = Extract<ProductResult, { ok: false }>;
+export type CatalogResult = { ok: true; products: Product[]; total: number } | Failure;
+export type BrandContent = { headline: string; intro: string; story: string };
+export type ContentResult = { ok: true; content: BrandContent } | Failure;
+export type ContentClient = { getBrandContent: () => Promise<ContentResult> };
+
+export function isCatalogQuery(value: unknown): value is CatalogQuery {
+  return isRecord(value) && Object.keys(value).every(key => key === 'collection' || key === 'sort')
+    && (value.collection === undefined || COLLECTIONS.some(item => item === value.collection))
+    && (value.sort === undefined || SORTS.some(item => item === value.sort));
+}
+
+export function catalogSearch(query: CatalogQuery): string {
+  const params = new URLSearchParams();
+  if (query.collection) params.set('collection', query.collection);
+  if (query.sort && query.sort !== 'featured') params.set('sort', query.sort);
+  return params.size ? `?${params}` : '';
+}
+
+export function isCatalogResult(value: unknown): value is CatalogResult {
+  if (!isRecord(value)) return false;
+  if (value.ok !== true) return isProductResult(value) && value.ok === false;
+  return Array.isArray(value.products) && value.products.every(isProduct)
+    && value.total === value.products.length
+    && new Set(value.products.map(product => product.id)).size === value.products.length;
+}
+
+export function isBrandContent(value: unknown): value is BrandContent {
+  return isRecord(value) && ['headline', 'intro', 'story'].every(key =>
+    typeof value[key] === 'string' && value[key].trim().length > 0
+    && (value[key] as string).length <= (key === 'headline' ? 200 : 2000));
+}
+
+export function isContentResult(value: unknown): value is ContentResult {
+  if (!isRecord(value)) return false;
+  return value.ok === true ? isBrandContent(value.content) : isProductResult(value) && value.ok === false;
+}
 
 export function isProductResult(value: unknown): value is ProductResult {
   if (!isRecord(value)) return false;

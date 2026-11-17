@@ -1,10 +1,15 @@
+import Link from 'next/link';
+import { catalogSearch } from '@atelier/contracts';
+import { WatchIllustration } from '../../../components/watch-illustration';
+import { normalizeCatalogSearch, formatPrice, type SearchValues } from '../../../lib/catalog';
 import { notFound } from 'next/navigation';
 import { getCommerce } from '../../../lib/commerce';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SearchValues> }) {
   const { id } = await params;
+  const search = catalogSearch(normalizeCatalogSearch(await searchParams));
   const result = await getCommerce().getProduct({ id });
   if (!result.ok) {
     if (result.error.code === 'PRODUCT_NOT_FOUND' || result.error.code === 'INVALID_INPUT') notFound();
@@ -12,16 +17,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <main id="main" className="intro">
         <h1>Temporarily unavailable</h1>
         <p>We could not load this watch. Please try again shortly.</p>
-        <a className="button" href={`/products/${encodeURIComponent(id)}`}>Try again</a>
+        <a className="button" href={`/products/${encodeURIComponent(id)}${search}`}>Try again</a>
       </main>
     );
   }
   const { product } = result;
-  const price = new Intl.NumberFormat('en-IE', { style: 'currency', currency: product.price.currency }).format(product.price.amountMinor / 100);
+  const price = formatPrice(product.price.amountMinor);
   return (
     <main id="main" className="product">
-      <div className="watch-panel"><WatchIllustration /></div>
+      <div className="watch-panel"><WatchIllustration product={product} /></div>
       <section className="product-copy">
+        <Link className="text-sm underline underline-offset-4" href={`/products${search}`}>Back to collection</Link>
         <p className="eyebrow">THE {product.collection.toUpperCase()} COLLECTION</p>
         <h1>{product.name}</h1>
         <p className="price">{price}</p>
@@ -40,25 +46,5 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </p>
       </section>
     </main>
-  );
-}
-
-function WatchIllustration() {
-  return (
-    <svg viewBox="0 0 400 480" role="img" aria-labelledby="watch-title">
-      <title id="watch-title">Illustration of the Atelier Horizon watch</title>
-      <rect x="158" y="10" width="84" height="460" rx="25" fill="#4e4438" />
-      <rect x="165" y="10" width="70" height="460" rx="20" fill="#655848" />
-      <circle cx="200" cy="240" r="110" fill="#a49375" />
-      <circle cx="200" cy="240" r="101" fill="#e7e0cf" />
-      <circle cx="200" cy="240" r="91" fill="#eee9dd" />
-      <g stroke="#524c3e" strokeWidth="2">
-        <path d="M200 155v12m0 146v12m-85-85h12m146 0h12" />
-        <path d="M200 240v-55m0 55l42 25" strokeWidth="4" />
-      </g>
-      <circle cx="200" cy="240" r="5" fill="#524c3e" />
-      <text x="200" y="206" textAnchor="middle" fontSize="11" letterSpacing="3" fill="#524c3e">ATELIER</text>
-      <text x="200" y="288" textAnchor="middle" fontSize="8" letterSpacing="2" fill="#74694f">HORIZON</text>
-    </svg>
   );
 }

@@ -1,7 +1,11 @@
-# Express integration boundary
+# Express integration BFF
 
-Express 4.22.3 implements GET /api/products/:id and /healthz. server.ts owns HTTP routing, validation of server configuration, safe status mapping and request IDs. product.ts calls the provider with a bounded timeout and normalizes its vendor-shaped response. The app is native ESM; no integration loader or CommonJS bridge is needed.
+The root `npm run dev` starts this service on loopback port 4000. `PROVIDER_URL` and `PROVIDER_TIMEOUT_MS` configure trusted server-side access; defaults are the local provider and 1500 ms. Health: `/healthz`.
 
-The public response is ProductResult: HTTP 200 on success; 400 for invalid input; 404 for missing product; 502 for failed/invalid provider responses; 504 for provider timeout; 500 for unexpected internal errors. Every response has no-store and a server-generated X-Request-ID. Raw error bodies/stacks are not exposed. CORS is not enabled because the storefront server calls this API directly.
+- `GET /api/products`: validates optional collection/sort, calls one provider listing, normalizes all products and checks count/unique IDs. Empty lists return 200.
+- `GET /api/products/:id`: validates ID and returns normalized detail from the same adapter.
+- `GET /api/content/brand`: normalizes bounded plain-text editorial content. UI fallback belongs to Next, not this service.
 
-Run npm run dev from the repository root. Default port 4000, loopback only. See [public contract](../../packages/contracts/bff-openapi.json) and [architecture](../../docs/ARCHITECTURE.md).
+Unexpected/repeated queries return 400. Upstream failure, invalid JSON/data and timeout map to safe 502/504 results. All responses carry no-store and a server-generated X-Request-ID propagated upstream. No raw bodies, exceptions or provider-specific fields reach the UI. There are no retries, write routes or duplicate commerce state.
+
+Contracts: [public API](../../packages/contracts/bff-openapi.json), [provider](../../packages/contracts/openapi.json). The provider is fictional; cart and orders remain M3.

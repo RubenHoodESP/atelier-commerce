@@ -1,7 +1,11 @@
 # Local provider boundaries
 
-Express 4.22.3 serves one deterministic fictional product at `GET /products/watch-001` and a `/health` endpoint. Its vendor-shaped fixture uses `sku`, `unit_price.cents` and `available_units`; the Express BFF adapter converts these to the domain contract.
+Express serves fictional commerce and editorial modules in one process. Run from the root with `npm run dev`; default port 4100, loopback only. Health: `/health`.
 
-Run from the repository root using `npm run dev`; default address: `http://127.0.0.1:4100`. Runtime configuration is server-only in `.env.example`. Failure injection belongs only to isolated tests.
+- `GET /products`: 12 vendor-shaped fixtures; collection and sort query parameters, `{items,count}` response.
+- `GET /products/:id`: same fixtures as listing, unknown IDs return 404.
+- `GET /content/brand`: vendor-shaped editorial fields, independent of commercial prices/stock.
 
-Catalog listing/content modules are planned for M2. Cart, stock mutation, atomic order acceptance and in-memory idempotency are planned for M3; none is implemented yet. See [quality](../../docs/QUALITY.md).
+The BFF normalizes `sku`, `unit_price.cents`, `available_units` and editorial field names. Catalog sorting/filtering occurs here, with ID tie-breaking. Factory options support isolated empty datasets in tests. Delays/fault controls are provided only by the E2E harness, never by application endpoints.
+
+Cart, stock mutation, atomic acceptance and idempotency remain M3. No database, CMS or external account is needed. See [quality](../../docs/QUALITY.md).

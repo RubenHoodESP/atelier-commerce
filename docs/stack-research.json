@@ -1,6 +1,6 @@
 {
   "checkedOn": "2026-11-17",
-  "status": "express-rest-m1-validated",
+  "status": "m2-local-validated",
   "compatibilityValidated": true,
   "runtime": {
     "name": "node",
@@ -40,8 +40,8 @@
       "name": "tailwindcss",
       "candidate": "4.3.5",
       "source": "https://registry.npmjs.org/tailwindcss/latest",
-      "evidence": "candidate-deferred",
-      "installed": null
+      "evidence": "m2-local-npm-ci-typecheck-build-and-e2e",
+      "installed": "4.3.5"
     },
     {
       "name": "express",
@@ -86,17 +86,39 @@
       "installed": "12.1.0",
       "source": "https://registry.npmjs.org/@apidevtools/swagger-parser/12.1.0",
       "evidence": "npm-ci-typecheck-build-and-product-tests"
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "candidate": "4.3.5",
+      "installed": "4.3.5",
+      "source": "https://registry.npmjs.org/@tailwindcss/postcss/4.3.5",
+      "evidence": "m2-local-npm-ci-typecheck-build-and-e2e"
+    },
+    {
+      "name": "postcss",
+      "candidate": "8.5.33",
+      "installed": "8.5.33",
+      "source": "https://registry.npmjs.org/postcss/8.5.33",
+      "evidence": "m2-local-npm-ci-typecheck-build-and-e2e"
     }
   ],
   "pending": [
-    "Tailwind/PostCSS in M2",
-    "Client Component testing when needed",
+    "Guest cart and simulated orders in M3",
     "Scanners and measured audits in M4"
   ],
-  "validationScope": "Express BFF and typed REST client: npm ci, structural checks, typecheck, 19 contract/client/real-HTTP tests, production build and 2 Chromium E2E tests on Node 22.23.5.",
+  "validationScope": "M2 local: npm ci, structural checks, typecheck, 47 tests, production build and 9 system-Chromium E2E tests on Node 22.23.5/npm 10.9.9. Historical validationRun applies to M1 only.",
   "packageManager": {
     "name": "npm",
     "version": "10.9.9"
   },
-  "validationRun": "https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459"
+  "validationRun": "https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459",
+  "validationRunScope": "Historical M1 CI; no M2 CI run claimed.",
+  "localValidation": {
+    "node": "22.23.5",
+    "npm": "10.9.9",
+    "tests": 47,
+    "e2e": 9,
+    "browser": "System Chromium 156.0.8078.79",
+    "publication": "not performed"
+  }
 }

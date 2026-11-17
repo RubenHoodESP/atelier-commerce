@@ -11,9 +11,11 @@ Checked 2026-11-17. The integration uses public npm packages and an owned REST c
 | Express | 4.22.3 | REST BFF and vendor mock |
 | Vitest / Vite | 5.1.0 / 8.3.8 | Contract, client and real HTTP tests |
 | Playwright | 1.65.1 | Chromium E2E |
+| Tailwind / PostCSS plugin | 4.3.5 / 4.3.5 | Storefront CSS build |
+| PostCSS | 8.5.33 | CSS processing |
 | Swagger Parser | 12.1.0 | OpenAPI 3.1 validation |
 
-Express major is deliberately unchanged during migration. body-parser remains an Express transitive dependency, not a direct BFF dependency. The shared client uses native fetch and a fresh AbortSignal.timeout per request. Tailwind/PostCSS candidates 4.3.5 remain deferred to M2; RTL is deferred until meaningful client interaction exists.
+Express major is deliberately unchanged during migration. body-parser remains an Express transitive dependency, not a direct BFF dependency. The shared client uses native fetch and a fresh AbortSignal.timeout per request. Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned in the storefront workspace. URL/native-form interaction is exercised by Playwright; RTL remains deferred until component-level behavior justifies another dependency.
 
 Local Node 24.22.1/npm 11.19.1 is inside the declared engines range; check [STATUS](STATUS.md) for migration validation versus previous results. CI continues on the pinned baseline. No force or legacy-peer-deps overrides are used.
 

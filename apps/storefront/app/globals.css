@@ -1,138 +1,38 @@
-:root{
-  color-scheme:light;
-  --paper:#f6f3ed;
-  --ink:#292c26;
-  --muted:#6e7066;
-  --line:#deddd4}
-  *{
-    box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--paper);
-      color:var(--ink);
-      font-family:Arial,Helvetica,sans-serif}
-      a{
-        color:inherit}
-        header{
-          min-height:115px;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          padding:30px 6vw;
-          border-bottom:1px solid var(--line)}
-          .brand{
-            text-decoration:none;
-            font-size:27px;
-            letter-spacing:8px}
-            .brand span{
-              display:block;
-              margin-top:9px;
-              font-size:8px;
-              letter-spacing:2px}
-              .edition{
-                font-size:11px;
-                letter-spacing:2px;
-                text-transform:uppercase}
-                .eyebrow{
-                  font-size:10px;
-                  letter-spacing:3px;
-                  text-transform:uppercase}
-                  .intro{
-                    max-width:1000px;
-                    min-height:70vh;
-                    margin:auto;
-                    padding:100px 6vw}
-                    h1{
-                      font-family:Georgia,serif;
-                      font-weight:400;
-                      line-height:1.08;
-                      font-size:clamp(40px,5vw,70px);
-                      letter-spacing:-2px;
-                      margin:24px 0}
-                      .intro>p:not(.eyebrow){
-                        max-width:430px;
-                        line-height:1.8;
-                        color:var(--muted)}
-                        .button{
-                          display:inline-flex;
-                          gap:30px;
-                          margin-top:26px;
-                          padding:17px 25px;
-                          background:var(--ink);
-                          color:white;
-                          text-decoration:none;
-                          font-size:12px}
-                          .product{
-                            max-width:1300px;
-                            min-height:70vh;
-                            margin:auto;
-                            padding:65px 6vw 90px;
-                            display:grid;
-                            grid-template-columns:1.1fr 1fr;
-                            gap:8vw;
-                            align-items:center}
-                            .watch-panel{
-                              background:#e9e6dd;
-                              display:grid;
-                              place-items:center;
-                              min-height:480px}
-                              .watch-panel svg{
-                                width:100%;
-                                max-height:480px}
-                                .product h1{
-                                  font-size:clamp(35px,4vw,56px)}
-                                  .price{
-                                    font-size:19px;
-                                    margin-bottom:32px}
-                                    .description{
-                                      line-height:1.8;
-                                      color:var(--muted);
-                                      max-width:420px}
-                                      dl{
-                                        margin:35px 0}
-                                        dl>div{
-                                          display:flex;
-                                          justify-content:space-between;
-                                          border-top:1px solid var(--line);
-                                          padding:16px 0;
-                                          font-size:12px}
-                                          dd{
-                                            margin:0}
-                                            .availability{
-                                              font-size:11px;
-                                              color:var(--muted);
-                                              line-height:1.6}
-                                              footer{
-                                                padding:25px 6vw;
-                                                border-top:1px solid var(--line);
-                                                font-size:10px;
-                                                color:var(--muted)}
-                                                .skip-link{
-                                                  position:absolute;
-                                                  left:12px;
-                                                  top:-100px;
-                                                  background:var(--ink);
-                                                  color:white;
-                                                  padding:12px;
-                                                  z-index:2}
-                                                  .skip-link:focus{
-                                                    top:12px}
-                                                    :focus-visible{
-                                                      outline:3px solid #8a6926;
-                                                      outline-offset:5px}
-                                                      @media(max-width:700px){
-                                                        header{
-                                                          min-height:95px}
-                                                          .edition{
-                                                            display:none}
-                                                            .product{
-                                                              grid-template-columns:1fr;
-                                                              gap:35px;
-                                                              padding-top:25px}
-                                                              .watch-panel{
-                                                                min-height:330px}
-                                                                .watch-panel svg{
-                                                                  max-height:350px}
-                                                                  .intro{
-                                                                    padding-top:65px}
-                                                                  }
+@import "tailwindcss";
+@theme {
+  --color-paper: #f5f3ed;
+  --color-panel: #e9e6dd;
+  --color-ink: #25251f;
+  --color-muted: #625f56;
+  --color-line: #d5d0c4;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-editorial: Georgia, serif;
+}
+@layer base {
+  body { @apply bg-paper font-sans text-ink antialiased; }
+  h1 { @apply my-6 font-editorial text-[clamp(2.5rem,5vw,4.375rem)] leading-[1.08] tracking-tight; }
+  h2 { @apply font-editorial text-3xl; }
+  a, button, select { @apply touch-manipulation; }
+  button, select { @apply cursor-pointer; }
+  :focus-visible { outline: 3px solid #8a6926; outline-offset: 5px; }
+  header { @apply flex min-h-28 flex-wrap items-center justify-between gap-6 border-b border-line px-[6vw] py-5; }
+  footer { @apply border-t border-line px-[6vw] py-6 text-xs leading-6 text-muted; }
+}
+@layer components {
+  .shell { @apply mx-auto w-full max-w-[1300px] px-[6vw]; }
+  .brand { @apply text-xl tracking-[0.25em]; }
+  .brand span { @apply mt-2 block text-[8px] tracking-[0.2em]; }
+  .eyebrow { @apply text-[10px] tracking-[0.25em] uppercase; }
+  .intro { @apply mx-auto min-h-[70vh] max-w-[1000px] px-[6vw] py-16 md:py-24; }
+  .intro > p:not(.eyebrow) { @apply max-w-lg leading-8 text-muted; }
+  .button { @apply inline-flex min-h-12 items-center justify-center gap-6 bg-ink px-6 py-3 text-sm text-white; }
+  .product { @apply mx-auto grid min-h-[70vh] max-w-[1300px] items-center gap-9 px-[6vw] py-12 md:grid-cols-2 md:gap-[8vw] md:py-20; }
+  .watch-panel { @apply grid min-h-[330px] place-items-center bg-panel md:min-h-[480px]; }
+  .product h1 { @apply text-[clamp(2.2rem,4vw,3.5rem)]; }
+  .price { @apply mb-8 text-xl; }
+  .description { @apply max-w-md leading-8 text-muted; }
+  .product dl { @apply my-9; }
+  .product dl > div { @apply flex justify-between gap-4 border-t border-line py-4 text-sm; }
+  .availability { @apply text-sm leading-6 text-muted; }
+  .skip-link { @apply absolute -top-40 left-3 z-50 bg-ink p-3 text-white focus:top-3; }
+}

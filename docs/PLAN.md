@@ -6,6 +6,8 @@ Preparar entrevistas de frontend senior con una pequeña tienda de relojes que p
 
 El MVP tendrá 8–12 relojes ficticios, catálogo con filtros en la URL, ficha, carrito invitado y confirmación simulada. EUR e importes enteros en céntimos. El proveedor posee precios y stock; el navegador envía únicamente IDs y cantidades. Quedan fuera pagos reales, cuentas, datos personales, envíos, descuentos, multimoneda y despliegue empresarial.
 
+Estado de implementación: M0, M1 y M2 completos localmente; M3 es el siguiente hito. Resultados exactos en [STATUS](STATUS.md).
+
 ## Hitos y cierre
 
 | Hito | Trabajo | Evidencia |
