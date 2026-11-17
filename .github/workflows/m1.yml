@@ -1,0 +1,34 @@
+name: M1 compatibility
+
+on:
+  push:
+    branches: [feat/m1-product-integration]
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - '.github/workflows/m1.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Check package availability and compatibility metadata
+        run: node scripts/inspect-stack.mjs
