@@ -14,7 +14,7 @@
   "scripts": {
     "check": "node scripts/check-foundation.mjs",
     "context": "node scripts/context.mjs",
-    "lint": "oxlint --deny-warnings",
+    "lint": "oxlint --type-aware --deny-warnings",
     "build:services": "npm run build -w @atelier/contracts && npm run build -w @atelier/mock-services && npm run build -w @atelier/middleware",
     "build": "npm run build:services && npm run build -w @atelier/storefront",
     "typecheck": "npm run build -w @atelier/contracts && tsc -p apps/mock-services/tsconfig.json --noEmit && tsc -p apps/middleware/tsconfig.json --noEmit && tsc -p apps/storefront/tsconfig.json --noEmit",
@@ -33,6 +33,7 @@
     "@types/react-dom": "19.3.0",
     "express": "4.22.3",
     "oxlint": "1.91.0",
+    "oxlint-tsgolint": "7.0.2005",
     "typescript": "7.0.2",
     "vite": "8.3.8",
     "vitest": "5.1.0"

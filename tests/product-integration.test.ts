@@ -14,7 +14,7 @@ async function listen(server: Server) {
   return `http://127.0.0.1:${address.port}`;
 }
 async function commerce(providerUrl: string, timeoutMs = 500) {
-  const apiUrl = `${await listen(await createMiddlewareServer({ providerUrl, timeoutMs }))}/api`;
+  const apiUrl = `${await listen(createMiddlewareServer({ providerUrl, timeoutMs }))}/api`;
   return { client: createCommerceClient({ baseUrl: apiUrl }) };
 }
 afterEach(async () => {

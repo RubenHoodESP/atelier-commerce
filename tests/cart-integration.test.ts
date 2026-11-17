@@ -15,7 +15,7 @@ async function listen(server: Server) {
   return `http://127.0.0.1:${address.port}`;
 }
 async function setup(provider: express.Express = createProviderApp(), timeoutMs = 500) {
-  const apiUrl = `${await listen(await createMiddlewareServer({ providerUrl: await listen(createServer(provider)), timeoutMs }))}/api`;
+  const apiUrl = `${await listen(createMiddlewareServer({ providerUrl: await listen(createServer(provider)), timeoutMs }))}/api`;
   return { apiUrl, client: createCommerceClient({ baseUrl: apiUrl }) };
 }
 async function newCart(client: Awaited<ReturnType<typeof setup>>['client']): Promise<Cart> {

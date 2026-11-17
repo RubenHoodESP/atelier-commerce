@@ -38,7 +38,7 @@ export async function addToBag(_previous: AddToBagState, formData: FormData): Pr
   if (!result.ok) return { message: MESSAGES[result.error.code] ?? UNAVAILABLE };
   // Layouts persist across navigations; revalidate so the header bag count is fresh.
   revalidatePath('/', 'layout');
-  redirect('/cart');
+  return redirect('/cart');
 }
 
 export type UpdateBagState = { message: string; focusStatus: boolean; version: number } | null;
@@ -99,5 +99,5 @@ export async function placeOrder(_previous: PlaceOrderState, formData: FormData)
   }
   await clearCartId();
   revalidatePath('/', 'layout');
-  redirect(`/orders/${result.order.id}`);
+  return redirect(`/orders/${result.order.id}`);
 }

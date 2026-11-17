@@ -43,10 +43,20 @@ export type BrandContent = { headline: string; intro: string; story: string };
 export type ContentResult = { ok: true; content: BrandContent } | Failure;
 export type ContentClient = { getBrandContent: () => Promise<ContentResult> };
 
+// Type guards narrow for real (no `as` casts), so the compiler checks what is validated.
+export function isCollection(value: unknown): value is typeof COLLECTIONS[number] {
+  return COLLECTIONS.some(item => item === value);
+}
+export function isSort(value: unknown): value is typeof SORTS[number] {
+  return SORTS.some(item => item === value);
+}
+export function isIntegerInRange(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max;
+}
 export function isCatalogQuery(value: unknown): value is CatalogQuery {
   return isRecord(value) && Object.keys(value).every(key => key === 'collection' || key === 'sort')
-    && (value.collection === undefined || COLLECTIONS.some(item => item === value.collection))
-    && (value.sort === undefined || SORTS.some(item => item === value.sort));
+    && (value.collection === undefined || isCollection(value.collection))
+    && (value.sort === undefined || isSort(value.sort));
 }
 
 export function catalogSearch(query: CatalogQuery): string {
@@ -58,21 +68,22 @@ export function catalogSearch(query: CatalogQuery): string {
 
 export function isCatalogResult(value: unknown): value is CatalogResult {
   if (!isRecord(value)) return false;
-  if (value.ok !== true) return isProductResult(value) && value.ok === false;
+  if (value.ok !== true) return isProductResult(value) && !value.ok;
   return Array.isArray(value.products) && value.products.every(isProduct)
     && value.total === value.products.length
     && new Set(value.products.map(product => product.id)).size === value.products.length;
 }
 
 export function isBrandContent(value: unknown): value is BrandContent {
-  return isRecord(value) && ['headline', 'intro', 'story'].every(key =>
-    typeof value[key] === 'string' && value[key].trim().length > 0
-    && (value[key] as string).length <= (key === 'headline' ? 200 : 2000));
+  return isRecord(value) && ['headline', 'intro', 'story'].every(key => {
+    const text = value[key];
+    return typeof text === 'string' && text.trim().length > 0 && text.length <= (key === 'headline' ? 200 : 2000);
+  });
 }
 
 export function isContentResult(value: unknown): value is ContentResult {
   if (!isRecord(value)) return false;
-  return value.ok === true ? isBrandContent(value.content) : isProductResult(value) && value.ok === false;
+  return value.ok === true ? isBrandContent(value.content) : isProductResult(value) && !value.ok;
 }
 
 export function isProductResult(value: unknown): value is ProductResult {
@@ -96,9 +107,8 @@ export function isProduct(value: unknown): value is Product {
   return typeof value.id === 'string' && /^watch-[0-9]{3}$/.test(value.id)
     && typeof value.name === 'string' && value.name.length > 0 && value.name.length <= 200
     && typeof value.collection === 'string' && value.collection.length > 0 && value.collection.length <= 80
-    && Number.isSafeInteger(value.stock) && (value.stock as number) >= 0
-    && value.price.currency === 'EUR' && Number.isSafeInteger(value.price.amountMinor)
-    && (value.price.amountMinor as number) >= 0;
+    && isIntegerInRange(value.stock, 0, Number.MAX_SAFE_INTEGER)
+    && value.price.currency === 'EUR' && isIntegerInRange(value.price.amountMinor, 0, Number.MAX_SAFE_INTEGER);
 }
 
 // Guest cart. Commerce owns prices and totals; clients send only IDs and quantities.
@@ -116,19 +126,18 @@ export function isCartId(value: unknown): value is string {
   return typeof value === 'string' && UUID.test(value);
 }
 export function isQuantity(value: unknown): value is number {
-  return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= CART_LIMITS.maxQuantity;
+  return isIntegerInRange(value, 1, CART_LIMITS.maxQuantity);
 }
 export function isCartItemInput(value: unknown): value is CartItemInput {
   return isRecord(value) && Object.keys(value).length === 2
     && isProductQuery({ id: value.productId }) && isQuantity(value.quantity);
 }
 export function isCartLineUpdate(value: unknown): value is CartLineUpdate {
-  return isRecord(value) && Object.keys(value).length === 1 && Number.isInteger(value.quantity)
-    && (value.quantity as number) >= 0 && (value.quantity as number) <= CART_LIMITS.maxQuantity;
+  return isRecord(value) && Object.keys(value).length === 1 && isIntegerInRange(value.quantity, 0, CART_LIMITS.maxQuantity);
 }
 function isMoney(value: unknown): value is Money {
   return isRecord(value) && Object.keys(value).length === 2 && value.currency === 'EUR'
-    && Number.isSafeInteger(value.amountMinor) && (value.amountMinor as number) >= 0;
+    && isIntegerInRange(value.amountMinor, 0, Number.MAX_SAFE_INTEGER);
 }
 export function isCartLine(value: unknown): value is CartLine {
   return isRecord(value) && isProductQuery({ id: value.productId })
@@ -139,10 +148,9 @@ export function isCartLine(value: unknown): value is CartLine {
 // Totals must agree with the lines: a malformed cart is rejected, never repaired.
 function hasConsistentLines(lines: unknown, itemCount: unknown, total: Money): lines is CartLine[] {
   if (!Array.isArray(lines) || lines.length > CART_LIMITS.maxLines || !lines.every(isCartLine)) return false;
-  const valid = lines as CartLine[];
-  return new Set(valid.map(line => line.productId)).size === valid.length
-    && itemCount === valid.reduce((sum, line) => sum + line.quantity, 0)
-    && total.amountMinor === valid.reduce((sum, line) => sum + line.lineTotal.amountMinor, 0);
+  return new Set(lines.map(line => line.productId)).size === lines.length
+    && itemCount === lines.reduce((sum, line) => sum + line.quantity, 0)
+    && total.amountMinor === lines.reduce((sum, line) => sum + line.lineTotal.amountMinor, 0);
 }
 export function isCart(value: unknown): value is Cart {
   return isRecord(value) && isCartId(value.id) && isMoney(value.subtotal)
@@ -150,7 +158,7 @@ export function isCart(value: unknown): value is Cart {
 }
 export function isCartResult(value: unknown): value is CartResult {
   if (!isRecord(value)) return false;
-  return value.ok === true ? isCart(value.cart) : isProductResult(value) && value.ok === false;
+  return value.ok === true ? isCart(value.cart) : isProductResult(value) && !value.ok;
 }
 
 // Simulated orders. Commerce re-prices and decrements stock atomically; the browser sends
@@ -174,5 +182,5 @@ export function isOrder(value: unknown): value is Order {
 }
 export function isOrderResult(value: unknown): value is OrderResult {
   if (!isRecord(value)) return false;
-  return value.ok === true ? isOrder(value.order) : isProductResult(value) && value.ok === false;
+  return value.ok === true ? isOrder(value.order) : isProductResult(value) && !value.ok;
 }

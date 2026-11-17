@@ -1,10 +1,17 @@
 # Current state
 
-- **M0–M3 implemented; M4 in progress (slices 1–2: themes, automated accessibility audit).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M3 implemented; M4 in progress (slices 1–3: themes, automated accessibility audit, type-aware lint).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M4 slice 3: type-aware lint
+
+- `oxlint-tsgolint` 7.0.2005 (dev, pinned; the only version satisfying oxlint 1.91.0's `>=7.0.2005` peer that is over two weeks old) adds type-aware rules to `npm run lint` (`oxlint --type-aware --deny-warnings`, about 1 s for the monorepo), CI and the Claude edit hook. It works with the pinned TypeScript 7.0.2.
+- First run: 59 findings, none a live bug. In code: unsafe `as` casts after validation in contract guards, provider and BFF (`Number.isSafeInteger` does not narrow `unknown`), redundant `=== false`, `await` on the synchronous `createMiddlewareServer`, Server Actions ending in `redirect()` without `return`. In tests: redundant assertions, `sort()` without comparator, `String()` on a URL. Fixed without behaviour change: new narrowing guards `isIntegerInRange`, `isCollection`, `isSort` in contracts replace every cast; a `satisfies` tuple types the fixtures; the provider order body uses a type-predicate `every`. Now 0 findings.
+- A probe file with five defects (floating promise, unsafe cast, template with an object, base `toString`, boolean literal compare) gave 0 findings with syntactic lint and 5 with type-aware lint.
+- Checks (2026-11-17): `npm run check`, `lint`, `typecheck`, `build` passed; `npm test` 104 passed; E2E 44 passed with reduced motion and 44 with motion.
 
 ## M4 slice 2: automated accessibility audit
 
@@ -118,4 +125,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M4 slice 3: type-aware lint with `oxlint-tsgolint` (check compatibility with TypeScript 7.0.2 first) and fix findings. Then dependency audit policy (the vite/vitest picomatch advisory: dev-only, no fixed picomatch release per `npm audit`), measured Lighthouse runs with recorded conditions, and the learner's screen-reader pass. SonarQube/Snyk need accounts and remain not run.
+M4 slice 4: dependency audit policy — `npm audit --omit=dev` in CI failing on high/critical production advisories, and a dated accepted-risk record for the dev-only vite/vitest picomatch advisory (no fixed picomatch release per `npm audit`). Then slice 5: measured Lighthouse runs with recorded conditions, M4 closure table, and the learner's screen-reader pass. SonarQube/Snyk need accounts and remain not run.

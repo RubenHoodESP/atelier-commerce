@@ -43,7 +43,9 @@ describe('catalog and content transport guards', () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ ok: true, products: [], total: 0 }));
     vi.stubGlobal('fetch', fetchMock);
     expect(await client().getProducts({ collection: 'horizon', sort: 'price-asc' })).toEqual({ ok: true, products: [], total: 0 });
-    expect(String(fetchMock.mock.calls[0]![0])).toBe('http://127.0.0.1:4000/api/products?collection=horizon&sort=price-asc');
+    const input = fetchMock.mock.calls[0]?.[0];
+    expect(input).toBeInstanceOf(URL);
+    expect(input instanceof URL ? input.href : null).toBe('http://127.0.0.1:4000/api/products?collection=horizon&sort=price-asc');
   });
   it('rejects duplicates and inconsistent totals at the public response boundary', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ok: true, products: [product, product], total: 2 })));

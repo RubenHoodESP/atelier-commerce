@@ -21,7 +21,7 @@ if (!existsSync(oxlint)) {
   process.exit(0);
 }
 
-const result = spawnSync(process.execPath, [oxlint, '--deny-warnings', path], { cwd: root, encoding: 'utf8' });
+const result = spawnSync(process.execPath, [oxlint, '--type-aware', '--deny-warnings', path], { cwd: root, encoding: 'utf8' });
 if (result.status === 0) process.exit(0);
 console.error(`oxlint found problems in ${path}:\n${result.stdout}${result.stderr}`);
 process.exit(2);
