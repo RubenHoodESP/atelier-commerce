@@ -100,6 +100,13 @@
       "installed": "8.5.33",
       "source": "https://registry.npmjs.org/postcss/8.5.33",
       "evidence": "m2-local-npm-ci-typecheck-build-and-e2e"
+    },
+    {
+      "name": "oxlint",
+      "candidate": "1.91.0",
+      "installed": "1.91.0",
+      "source": "https://registry.npmjs.org/oxlint/1.91.0",
+      "evidence": "2026-11-17-local-lint-typecheck-test-build; chosen because eslint-config-next 16.4.6 pulls typescript-eslint 8.73.0, whose peer range typescript >=4.8.4 <6.1.0 excludes the pinned TypeScript 7.0.2"
     }
   ],
   "pending": [

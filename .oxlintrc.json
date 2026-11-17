@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "react", "jsx-a11y", "nextjs", "promise", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "import/no-unassigned-import": "off",
+    "oxc/no-async-endpoint-handlers": "off",
+    "unicorn/no-array-reverse": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**", "tests/support/**", "apps/*/src/index.ts"],
+      "rules": { "no-console": "off" }
+    },
+    {
+      "files": ["apps/storefront/app/layout.tsx"],
+      "rules": { "nextjs/no-html-link-for-pages": "off" }
+    }
+  ],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    ".local/**",
+    "apps/storefront/next-env.d.ts"
+  ]
+}
