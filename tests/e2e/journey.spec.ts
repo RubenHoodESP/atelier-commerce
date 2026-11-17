@@ -52,11 +52,11 @@ test('header marks the current page and shows the commerce bag count', async ({ 
   await expect(nav(page).getByRole('link', { name: 'Collection' })).toHaveAttribute('aria-current', 'page');
   await page.getByRole('button', { name: 'Add to bag' }).click();
   await expect(page).toHaveURL(/\/cart$/);
-  await expect(nav(page).getByRole('link', { name: 'Bag, 1 item' })).toHaveAttribute('aria-current', 'page');
+  await expect(nav(page).getByRole('link', { name: 'Bag 1 item' })).toHaveAttribute('aria-current', 'page');
 
   await page.getByRole('spinbutton', { name: 'Quantity for Atelier Horizon Sand' }).fill('3');
   await page.getByRole('button', { name: 'Update Atelier Horizon Sand' }).click();
-  await expect(nav(page).getByRole('link', { name: 'Bag, 3 items' })).toBeVisible();
+  await expect(nav(page).getByRole('link', { name: 'Bag 3 items' })).toBeVisible();
   await expect(page.getByTestId('bag-count')).toHaveText('3');
 
   await page.getByRole('button', { name: 'Place order' }).click();
@@ -84,6 +84,14 @@ test.describe('without JavaScript', () => {
     await page.goto('/products/watch-001');
     await page.getByRole('button', { name: 'Add to bag' }).click();
     await expect(page).toHaveURL(/\/cart$/);
-    await expect(nav(page).getByRole('link', { name: 'Bag, 1 item' })).toBeVisible();
+    await expect(nav(page).getByRole('link', { name: 'Bag 1 item' })).toBeVisible();
   });
+});
+
+test('the whole catalog card is clickable although only the name is the link', async ({ page }) => {
+  await page.goto('/products');
+  const card = page.getByRole('list', { name: 'Watches' }).getByRole('listitem').filter({ hasText: 'Atelier Meridian Slate' });
+  // Click where the illustration is: the link's ::after overlay receives it.
+  await card.click({ position: { x: 120, y: 120 } });
+  await expect(page.getByRole('heading', { name: 'Atelier Meridian Slate' })).toBeVisible();
 });

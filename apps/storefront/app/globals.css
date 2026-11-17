@@ -83,10 +83,13 @@
   /* Watch seconds hand: a slow mechanical sweep around the dial centre. */
   .watch-seconds { transform-box: view-box; transform-origin: 200px 240px; animation: atelier-sweep 60s linear infinite; }
   .watch-seconds[data-sweep="hover"] { animation-play-state: paused; }
-  .group:hover .watch-seconds[data-sweep="hover"], .group:focus-visible .watch-seconds[data-sweep="hover"] { animation-play-state: running; }
+  .group:hover .watch-seconds[data-sweep="hover"], .group:has(:focus-visible) .watch-seconds[data-sweep="hover"] { animation-play-state: running; }
   .watch-lift { transition: transform var(--duration-hover) var(--ease-atelier); }
+  /* Stretched-link cards: the focus ring outlines the whole card, matching its click area. */
+  .card:has(a:focus-visible) { outline: 3px solid var(--color-accent); outline-offset: 6px; }
+  .card a:focus-visible { outline: none; }
   .count-lift { animation: atelier-count 250ms var(--ease-atelier) both; }
-  .group:hover .watch-lift, .group:focus-visible .watch-lift { transform: translateY(-6px); }
+  .group:hover .watch-lift, .group:has(:focus-visible) .watch-lift { transform: translateY(-6px); }
 }
 
 @keyframes atelier-reveal {
@@ -100,5 +103,5 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal, .watch-seconds, .count-lift { animation: none; }
   .watch-lift { transition: none; }
-  .group:hover .watch-lift, .group:focus-visible .watch-lift { transform: none; }
+  .group:hover .watch-lift, .group:has(:focus-visible) .watch-lift { transform: none; }
 }
