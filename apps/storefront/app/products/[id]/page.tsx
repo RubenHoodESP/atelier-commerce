@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { catalogSearch } from '@atelier/contracts';
 import { WatchIllustration } from '../../../components/watch-illustration';
+import { AddToBag } from '../../../components/add-to-bag';
 import { normalizeCatalogSearch, formatPrice, type SearchValues } from '../../../lib/catalog';
 import { notFound } from 'next/navigation';
 import { getCommerce } from '../../../lib/commerce';
@@ -44,6 +45,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
         <p className="availability" role="status">
           {product.stock > 0 ? 'Available in this demonstration collection.' : 'This reference is currently unavailable.'}
         </p>
+        {product.stock > 0 && <AddToBag productId={product.id} />}
       </section>
     </main>
   );
