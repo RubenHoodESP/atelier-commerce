@@ -6,13 +6,15 @@
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
 
-## Polish slice: motion (between M3 slices 3 and 4)
+## Polish slice: motion and display typography (between M3 slices 3 and 4)
 
 - CSS motion (works without JavaScript): staggered entrance on home, catalog, detail and confirmation; a 60 s seconds-hand sweep on the watch illustration (detail always, catalog cards on hover/focus only); illustration lift on card hover/focus. Shared tokens `--ease-atelier`, `--duration-reveal`, `--duration-hover`.
 - Motion 14.9.0 (MIT, pinned in `@atelier/storefront`, clean `npm install`, no peer warnings; React 19.3.1 deduped) only in `CatalogGrid` (cards glide on filter/sort) and `BagEditor` (removed lines fold away, subtotal crossfades), through `MotionScope` (`LazyMotion` lazy features + `strict`, `MotionConfig reducedMotion="user"`). `AnimatePresence initial={false}` keeps server HTML visible. Rules and alternatives: [ADR 0007](adr/0007-motion.md).
 - `prefers-reduced-motion` disables entrance, sweep and lift; Playwright defaults to `reducedMotion: 'reduce'`; `tests/e2e/motion.spec.ts` (5 tests) opts in to verify sweep/hover/entrance, filtering during animation, no `opacity: 0` in server HTML and visible no-JS entrance.
 - Checks (2026-11-17): `npm run check`, `npm run lint`, `npm run typecheck`, `npm run build` passed; `npm test` 85 passed; E2E **27 passed** with reduced motion and **27 passed** with motion enabled (ignored local config) using preinstalled Chromium 153.0.8010.12.
 - Measured gzip JS referenced by each route's HTML (production): `/` 174.3 → 174.3 KB, `/products/watch-001` 174.7 → 174.7 KB, `/products` 175.1 → 193.6 KB (+18.5), `/cart` 175.5 → 193.1 KB (+17.6). No runtime performance or Core Web Vitals measurement was made.
+- Display typography: headings use Cormorant Garamond 500 with 400 italic for occasional emphasis, self-hosted through `next/font/local` (metric-adjusted fallback, immutable caching, preloaded via the HTTP `Link` header). Two woff2 files (23.3 + 23.7 KB) copied unchanged from `@fontsource/cormorant-garamond@5.3.0` with OFL license and SHA-256 provenance in `apps/storefront/app/fonts/README.md`; JS size unchanged. The seconds hand now starts at 7 o'clock so the static reduced-motion hand never hides the other hands. See [ADR 0008](adr/0008-display-typography.md).
+- Final checks after typography: `npm run check`, `lint`, `typecheck`, `build` passed; `npm test` 85 passed; E2E 27 passed with reduced motion and 27 with motion enabled. Desktop and 360 px screenshots of home, catalog and detail inspected (no horizontal scroll).
 
 ## M3 slice 3: simulated order acceptance with idempotency
 

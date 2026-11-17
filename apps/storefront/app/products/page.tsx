@@ -16,7 +16,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   const [result, content] = await Promise.all([getCommerce().getProducts(query), getBrandContent()]);
   return (
     <main id="main" className="shell py-12 md:py-20">
-      <p className="eyebrow reveal">THE ATELIER COLLECTION</p><h1 className="reveal" style={reveal(1)}>Find your own rhythm.</h1>
+      <p className="eyebrow reveal">THE ATELIER COLLECTION</p><h1 className="reveal" style={reveal(1)}>Find your own <em>rhythm.</em></h1>
       <p className="reveal max-w-xl leading-8 text-muted" style={reveal(2)}>{content.intro}</p>
       <CatalogFilters query={query} />
       {!result.ok ? <section aria-labelledby="catalog-error"><h2 id="catalog-error">Temporarily unavailable</h2>
