@@ -1,5 +1,16 @@
 {
-  "name": "@atelier/middleware", "version": "0.1.0", "private": true, "type": "module",
-  "scripts": { "build": "tsc -p tsconfig.json", "start": "node dist/index.js" },
-  "dependencies": { "@atelier/contracts": "0.1.0", "@vue-storefront/middleware": "5.4.1", "express": "4.22.3", "body-parser": "1.20.9" }
+  "name": "@atelier/middleware",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@atelier/contracts": "0.1.0",
+    "@vue-storefront/middleware": "5.4.1",
+    "express": "4.22.3",
+    "body-parser": "1.20.9"
+  }
 }

@@ -31,15 +31,7 @@ jobs:
           node-version-file: .node-version
           package-manager-cache: false
       - name: Install dependencies
-        run: |
-          if test -f package-lock.json; then
-            npm ci --no-audit --no-fund
-          else
-            npm install --no-audit --no-fund
-            node scripts/pin-manifests.mjs
-            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-            node scripts/export-ci-generated.mjs
-          fi
+        run: npm ci --no-audit --no-fund
       - run: npm run check
       - run: npm run typecheck
       - run: npm test
