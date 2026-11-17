@@ -6,6 +6,12 @@
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
 
+## Watch illustration redesign (with M4)
+
+- `WatchIllustration` redrawn as a brand-free, gradient-only SVG (no filters): metallic case, bezel and lugs, fluted crown, sunburst dial, 60-tick minute track, dauphine hands in the 10:10 product pose, glass reflection, soft contact shadow, stitched straps. Collection sets the palette (Horizon gold/cream, Meridian steel/silver, Nocturne gunmetal/navy); the model number deterministically varies markers (batons, Roman numerals, dots), date window (which replaces the 3 o'clock marker) and strap colour. The seconds hand keeps its sweep and now rests near 8 o'clock so it hides neither hands nor wordmarks. Free stock photography was considered and rejected: brand logos on real watches would misrepresent the fictional Atelier brand and mixed photo sets break visual consistency.
+- Cost: `/products` HTML 4.4 → 8.0 KB gzip (12 inline watches), `/products/watch-001` 3.9 → 5.9 KB gzip; JavaScript unchanged.
+- Checks (2026-11-17): `npm run check`, `lint`, `typecheck`, `build` passed; `npm test` 104 passed; E2E 37 passed with reduced motion and 37 with motion. Catalog and detail screenshots inspected in both themes.
+
 ## M4 slice 1: light and dark themes
 
 - Auto follows `prefers-color-scheme`; a header switch (Auto/Light/Dark) stores an explicit choice in the HttpOnly `atelier_theme` cookie and the server renders `data-theme` on `<html>` (no flash, works without JavaScript; with JavaScript the theme previews instantly). Warm dark palette on the same tokens; hard-coded white and gold replaced by `paper` and `--color-accent`; `color-scheme` for native controls. See [ADR 0009](adr/0009-colour-themes.md).
