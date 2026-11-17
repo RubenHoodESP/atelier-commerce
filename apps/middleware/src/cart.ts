@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { isCart, isCartId, isCartItemInput, isRecord,
+import { isCart, isCartId, isCartItemInput, isCartLineUpdate, isProductQuery, isRecord,
   type Cart, type CartResult, type ErrorCode, type Failure } from '@atelier/contracts';
 import type { ProviderSettings } from './product.js';
 
@@ -7,6 +7,7 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
   INVALID_INPUT: 'Invalid cart request.',
   PRODUCT_NOT_FOUND: 'Product not found.',
   CART_NOT_FOUND: 'Cart not found.',
+  CART_LINE_NOT_FOUND: 'That watch is not in the bag.',
   OUT_OF_STOCK: 'The requested quantity is not available.',
   CART_LIMIT_EXCEEDED: 'The bag has reached its limit for this item.',
   UPSTREAM_TIMEOUT: 'The cart service took too long.',
@@ -31,11 +32,11 @@ export function normalizeCart(data: unknown): Cart | null {
 
 // Vendor error codes are mapped explicitly; anything unexpected is an upstream failure.
 const VENDOR_ERRORS: Record<string, ErrorCode> = {
-  cart_not_found: 'CART_NOT_FOUND', unknown_sku: 'PRODUCT_NOT_FOUND', insufficient_stock: 'OUT_OF_STOCK',
+  cart_not_found: 'CART_NOT_FOUND', line_not_found: 'CART_LINE_NOT_FOUND', unknown_sku: 'PRODUCT_NOT_FOUND', insufficient_stock: 'OUT_OF_STOCK',
   line_limit: 'CART_LIMIT_EXCEEDED', quantity_limit: 'CART_LIMIT_EXCEEDED',
 };
 async function callProvider(settings: ProviderSettings, path: string, requestId: string,
-  { method = 'GET', body, expectedStatus = 200, expectedId }: { method?: 'GET' | 'POST'; body?: unknown; expectedStatus?: number; expectedId?: string } = {}): Promise<CartResult> {
+  { method = 'GET', body, expectedStatus = 200, expectedId }: { method?: 'GET' | 'POST' | 'PUT'; body?: unknown; expectedStatus?: number; expectedId?: string } = {}): Promise<CartResult> {
   try {
     // Sent once: a timed-out write may still have been applied, so it is never retried.
     const response = await fetch(new URL(path, settings.providerUrl), {
@@ -72,5 +73,13 @@ export async function addCartItem(settings: ProviderSettings, cartId: unknown, i
   if (!isCartId(cartId) || !isCartItemInput(input)) return failure('INVALID_INPUT', requestId);
   return callProvider(settings, `/carts/${cartId}/lines`, requestId, {
     method: 'POST', body: { sku: input.productId, qty: input.quantity }, expectedId: cartId,
+  });
+}
+// Idempotent by design: the same quantity for the same line always yields the same cart.
+export async function setCartItemQuantity(settings: ProviderSettings, cartId: unknown, productId: unknown, input: unknown,
+  requestId = randomUUID()): Promise<CartResult> {
+  if (!isCartId(cartId) || !isProductQuery({ id: productId }) || !isCartLineUpdate(input)) return failure('INVALID_INPUT', requestId);
+  return callProvider(settings, `/carts/${cartId}/lines/${productId as string}`, requestId, {
+    method: 'PUT', body: { qty: input.quantity }, expectedId: cartId,
   });
 }

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Mock Commerce Provider",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Local fictional commerce and editorial modules. Product list, detail, brand content and in-memory guest carts implemented; order POST remains planned for M3."
   },
   "servers": [
@@ -312,6 +312,93 @@
           },
           "409": {
             "description": "insufficient_stock, line_limit or quantity_limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCartError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/carts/{id}/lines/{sku}": {
+      "put": {
+        "operationId": "setProviderCartLine",
+        "summary": "Set an existing line quantity; 0 removes it. Stock is checked only on increase.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sku",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "qty"
+                ],
+                "properties": {
+                  "qty": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCart"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_line",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCartError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "cart_not_found or line_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCartError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "insufficient_stock",
             "content": {
               "application/json": {
                 "schema": {
@@ -731,7 +818,8 @@
               "unknown_sku",
               "insufficient_stock",
               "line_limit",
-              "quantity_limit"
+              "quantity_limit",
+              "line_not_found"
             ]
           }
         }

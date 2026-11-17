@@ -22,13 +22,13 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M2 están implementados; M3 está en curso (corte 1 de 4: bolsa invitada).**
+**M0–M2 están implementados; M3 está en curso (cortes 1–2 de 4: bolsa invitada con edición).**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
 - M2: 12 productos en Horizon/Meridian/Nocturne, catálogo SSR, filtros/ordenación URL, historial y regreso desde detalle, agotados consultables, contenido editorial por HTTP con respaldo local, Tailwind y navegación adaptable/accesible básica.
 - Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
-- M3 corte 1 implementado: añadir a la bolsa y ver la bolsa; carrito en comercio y cookie opaca HttpOnly ([ADR 0005](adr/0005-guest-cart-session.md)). Pendiente en M3: editar/eliminar líneas, pedidos, stock concurrente e idempotencia.
+- M3 cortes 1–2 implementados: añadir, ver, cambiar cantidad y eliminar líneas; carrito en comercio y cookie opaca HttpOnly ([ADR 0005](adr/0005-guest-cart-session.md)). Pendiente en M3: pedidos, stock concurrente e idempotencia de pedidos.
 - M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
@@ -93,7 +93,7 @@ npm run test:e2e
 
 E2E necesita puertos 3000/4000/4100/4199 libres. Usa Next de producción y el BFF real con un proveedor controlable solo en `tests/support`. No mover sus controles de fallos a las rutas de la aplicación. Un único worker serializa los escenarios con estado compartido.
 
-Endpoints: BFF `/healthz`, `/api/products`, `/api/products/:id`, `/api/content/brand`, `POST /api/carts`, `GET /api/carts/:id`, `POST /api/carts/:id/items`; proveedor `/health`, `/products`, `/products/:id`, `/content/brand`, `POST /carts`, `GET /carts/:id`, `POST /carts/:id/lines`.
+Endpoints: BFF `/healthz`, `/api/products`, `/api/products/:id`, `/api/content/brand`, `POST /api/carts`, `GET /api/carts/:id`, `POST /api/carts/:id/items`, `PUT /api/carts/:id/items/:productId`; proveedor `/health`, `/products`, `/products/:id`, `/content/brand`, `POST /carts`, `GET /carts/:id`, `POST /carts/:id/lines`, `PUT /carts/:id/lines/:sku`.
 
 ### Particularidades de la máquina de Codex
 
@@ -117,7 +117,7 @@ El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa 
 
 ## 7. Cómo continuar con M3
 
-El corte 1 (bolsa invitada) está hecho: sesión opaca HttpOnly, Server Action same-origin con rechazo de otro origen probado y carrito propiedad de comercio. Siguiente: editar cantidad y eliminar líneas con el mismo patrón. No introducir autenticación de cuentas.
+Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). Siguiente: confirmación de pedido simulada. No introducir autenticación de cuentas.
 
 Antes de confirmar pedidos, definir y probar: cantidades enteras acotadas, IDs únicos, rechazo de campos de precio/total manipulados, recálculo de precios y validación de stock por comercio. La operación simulada debe aceptar todo o rechazar todo.
 
@@ -127,4 +127,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está en curso (corte 1 hecho). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M3 está en curso (cortes 1–2 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

@@ -8,6 +8,7 @@ export const ERROR_STATUS = {
   INVALID_INPUT: 400,
   PRODUCT_NOT_FOUND: 404,
   CART_NOT_FOUND: 404,
+  CART_LINE_NOT_FOUND: 404,
   OUT_OF_STOCK: 409,
   CART_LIMIT_EXCEEDED: 409,
   UPSTREAM_TIMEOUT: 504,
@@ -25,6 +26,7 @@ export type CommerceClient = {
   createCart: () => Promise<CartResult>;
   getCart: (query: CartQuery) => Promise<CartResult>;
   addCartItem: (query: CartQuery, input: CartItemInput) => Promise<CartResult>;
+  setCartItemQuantity: (query: CartQuery, input: CartLineUpdate & { productId: string }) => Promise<CartResult>;
 };
 
 export const COLLECTIONS = ['horizon', 'meridian', 'nocturne'] as const;
@@ -98,6 +100,8 @@ export function isProduct(value: unknown): value is Product {
 export const CART_LIMITS = { maxLines: 10, maxQuantity: 20 } as const;
 export type CartQuery = { cartId: string };
 export type CartItemInput = { productId: string; quantity: number };
+// Sets (not increments) an existing line; 0 removes it. Repeating the same request gives the same cart.
+export type CartLineUpdate = { quantity: number };
 export type CartLine = { productId: string; name: string; quantity: number; unitPrice: Money; lineTotal: Money };
 export type Cart = { id: string; lines: CartLine[]; itemCount: number; subtotal: Money };
 export type CartResult = { ok: true; cart: Cart } | Failure;
@@ -112,6 +116,10 @@ export function isQuantity(value: unknown): value is number {
 export function isCartItemInput(value: unknown): value is CartItemInput {
   return isRecord(value) && Object.keys(value).length === 2
     && isProductQuery({ id: value.productId }) && isQuantity(value.quantity);
+}
+export function isCartLineUpdate(value: unknown): value is CartLineUpdate {
+  return isRecord(value) && Object.keys(value).length === 1 && Number.isInteger(value.quantity)
+    && (value.quantity as number) >= 0 && (value.quantity as number) <= CART_LIMITS.maxQuantity;
 }
 function isMoney(value: unknown): value is Money {
   return isRecord(value) && Object.keys(value).length === 2 && value.currency === 'EUR'

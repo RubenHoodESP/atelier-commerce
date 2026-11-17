@@ -137,6 +137,60 @@ describe('guest cart: typed client -> Express BFF -> HTTP provider', () => {
   });
 });
 
+describe('guest cart: set line quantity and remove', () => {
+  async function bagWith(productId: string, quantity: number) {
+    const ctx = await setup();
+    const cart = await newCart(ctx.client);
+    expect(await ctx.client.addCartItem({ cartId: cart.id }, { productId, quantity })).toMatchObject({ ok: true });
+    return { ...ctx, cartId: cart.id };
+  }
+  const put = (apiUrl: string, cartId: string, productId: string, body: unknown, query = '') =>
+    fetch(`${apiUrl}/carts/${cartId}/items/${productId}${query}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+  it('sets the quantity, recalculates totals and is repeatable', async () => {
+    const { client, cartId } = await bagWith('watch-002', 1);
+    const first = await client.setCartItemQuantity({ cartId }, { productId: 'watch-002', quantity: 3 });
+    expect(first).toMatchObject({ ok: true, cart: { itemCount: 3, subtotal: { amountMinor: 285000 }, lines: [{ productId: 'watch-002', quantity: 3, lineTotal: { amountMinor: 285000 } }] } });
+    expect(await client.setCartItemQuantity({ cartId }, { productId: 'watch-002', quantity: 3 })).toEqual(first);
+  });
+
+  it('removes a line with quantity 0 and keeps the others', async () => {
+    const { client, cartId } = await bagWith('watch-002', 2);
+    await client.addCartItem({ cartId }, { productId: 'watch-001', quantity: 1 });
+    const result = await client.setCartItemQuantity({ cartId }, { productId: 'watch-002', quantity: 0 });
+    expect(result).toMatchObject({ ok: true, cart: { itemCount: 1, lines: [{ productId: 'watch-001' }] } });
+  });
+
+  it('rejects increases above current stock but always allows decreases', async () => {
+    const { client, cartId } = await bagWith('watch-004', 2);
+    expect(await client.setCartItemQuantity({ cartId }, { productId: 'watch-004', quantity: 3 })).toMatchObject({ ok: false, error: { code: 'OUT_OF_STOCK' } });
+    expect(await client.getCart({ cartId })).toMatchObject({ ok: true, cart: { itemCount: 2 } });
+    expect(await client.setCartItemQuantity({ cartId }, { productId: 'watch-004', quantity: 1 })).toMatchObject({ ok: true, cart: { itemCount: 1 } });
+  });
+
+  it('distinguishes a missing line, a missing cart and an unknown product', async () => {
+    const { client, cartId } = await bagWith('watch-001', 1);
+    expect(await client.setCartItemQuantity({ cartId }, { productId: 'watch-002', quantity: 1 })).toMatchObject({ ok: false, error: { code: 'CART_LINE_NOT_FOUND' } });
+    expect(await client.setCartItemQuantity({ cartId }, { productId: 'watch-999', quantity: 0 })).toMatchObject({ ok: false, error: { code: 'CART_LINE_NOT_FOUND' } });
+    expect(await client.setCartItemQuantity({ cartId: '00000000-0000-4000-8000-000000000000' }, { productId: 'watch-001', quantity: 1 })).toMatchObject({ ok: false, error: { code: 'CART_NOT_FOUND' } });
+  });
+
+  it.each([21, -1, 1.5, '1', null])('rejects quantity %j without changing the line', async quantity => {
+    const { apiUrl, client, cartId } = await bagWith('watch-001', 1);
+    expect((await put(apiUrl, cartId, 'watch-001', { quantity })).status).toBe(400);
+    expect(await client.getCart({ cartId })).toMatchObject({ ok: true, cart: { itemCount: 1 } });
+  });
+
+  it('rejects extra fields, malformed product IDs and query parameters', async () => {
+    const { apiUrl, client, cartId } = await bagWith('watch-001', 1);
+    expect((await put(apiUrl, cartId, 'watch-001', { quantity: 2, price: 1 })).status).toBe(400);
+    expect((await put(apiUrl, cartId, 'watch-001', { quantity: 2, productId: 'watch-002' })).status).toBe(400);
+    expect((await put(apiUrl, cartId, '..%2Fproducts', { quantity: 2 })).status).toBe(400);
+    expect((await put(apiUrl, cartId, 'watch-001', { quantity: 2 }, '?debug=1')).status).toBe(400);
+    expect(await client.getCart({ cartId })).toMatchObject({ ok: true, cart: { itemCount: 1 } });
+  });
+});
+
 describe('cart contract guard', () => {
   const line = { productId: 'watch-001', name: 'Atelier Horizon', quantity: 1, unitPrice: { amountMinor: 100, currency: 'EUR' }, lineTotal: { amountMinor: 100, currency: 'EUR' } };
   const cart = { id: '11111111-1111-4111-8111-111111111111', lines: [line], itemCount: 1, subtotal: { amountMinor: 100, currency: 'EUR' } };

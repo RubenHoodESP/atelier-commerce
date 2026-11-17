@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { getCommerce } from '../../lib/commerce';
 import { readCartId } from '../../lib/cart';
 import { formatPrice } from '../../lib/catalog';
+import { BagEditor } from '../../components/bag-editor';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Your bag | Atelier', robots: { index: false } };
@@ -21,7 +22,7 @@ export default async function CartPage() {
     );
   }
   const cart = result?.ok ? result.cart : null;
-  if (!cart || cart.lines.length === 0) {
+  if (!cart) {
     return (
       <main id="main" className="intro">
         <h1>Your bag</h1>
@@ -30,24 +31,15 @@ export default async function CartPage() {
       </main>
     );
   }
+  const lines = cart.lines.map(line => ({
+    productId: line.productId, name: line.name, quantity: line.quantity,
+    unitPrice: formatPrice(line.unitPrice.amountMinor), lineTotal: formatPrice(line.lineTotal.amountMinor),
+  }));
   return (
     <main id="main" className="intro">
       <h1>Your bag</h1>
-      <p role="status">{cart.itemCount === 1 ? '1 watch in your bag' : `${cart.itemCount} watches in your bag`}</p>
-      <ul aria-label="Bag items" className="my-8 border-t border-line">
-        {cart.lines.map(line => (
-          <li key={line.productId} className="grid gap-2 border-b border-line py-5 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <Link className="underline underline-offset-4" href={`/products/${line.productId}`}>{line.name}</Link>
-              <p className="text-sm text-muted">Quantity {line.quantity} × {formatPrice(line.unitPrice.amountMinor)}</p>
-            </div>
-            <p aria-label={`Line total for ${line.name}`}>{formatPrice(line.lineTotal.amountMinor)}</p>
-          </li>
-        ))}
-      </ul>
-      <dl className="flex justify-between gap-4 text-lg">
-        <dt>Subtotal</dt><dd data-testid="bag-subtotal">{formatPrice(cart.subtotal.amountMinor)}</dd>
-      </dl>
+      <BagEditor lines={lines} subtotal={formatPrice(cart.subtotal.amountMinor)}
+        summary={cart.itemCount === 1 ? '1 watch in your bag' : `${cart.itemCount} watches in your bag`} />
       <p className="mt-6 text-sm text-muted">
         Prices and availability are confirmed by commerce when an order is placed. Checkout is not available in this demonstration yet.
       </p>

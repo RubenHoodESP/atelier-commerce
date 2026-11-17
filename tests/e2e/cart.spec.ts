@@ -12,7 +12,7 @@ test('adds a watch from detail and shows commerce totals in the bag', async ({ p
   await page.goto('/products/watch-001');
   await page.getByRole('button', { name: 'Add to bag' }).click();
   await expect(page).toHaveURL(/\/cart$/);
-  await expect(page.getByRole('status').filter({ hasText: '1 watch in your bag' })).toBeVisible();
+  await expect(page.getByText('1 watch in your bag', { exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Bag items' }).getByRole('link', { name: 'Atelier Horizon' })).toBeVisible();
   await expect(page.getByTestId('bag-subtotal')).toHaveText('€1,250.00');
 
@@ -22,7 +22,7 @@ test('adds a watch from detail and shows commerce totals in the bag', async ({ p
 
   await page.goto('/products/watch-001');
   await page.getByRole('button', { name: 'Add to bag' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '2 watches in your bag' })).toBeVisible();
+  await expect(page.getByText('2 watches in your bag', { exact: true })).toBeVisible();
   await expect(page.getByTestId('bag-subtotal')).toHaveText('€2,500.00');
   await page.screenshot({ path: 'test-results/m3-bag.png', fullPage: true });
 });
@@ -38,7 +38,7 @@ test('stock limits are reported on the detail page without changing the bag', as
   await expect(page.getByRole('status').filter({ hasText: 'That quantity is no longer available.' })).toBeVisible();
   await expect(page).toHaveURL(/\/products\/watch-004$/);
   await page.goto('/cart');
-  await expect(page.getByRole('status').filter({ hasText: '2 watches in your bag' })).toBeVisible();
+  await expect(page.getByText('2 watches in your bag', { exact: true })).toBeVisible();
 });
 
 test('out-of-stock detail offers no add button', async ({ page }) => {
@@ -78,4 +78,52 @@ test('a cross-origin form post is rejected and sets no cart cookie', async ({ pa
 test('the bag page is private and never share-cached', async ({ request }) => {
   const response = await request.get('/cart');
   expect(response.headers()['cache-control']).toMatch(/no-store/);
+});
+
+test('changes quantity and removes lines with commerce totals, keeping focus', async ({ page }) => {
+  for (const id of ['watch-002', 'watch-001']) {
+    await page.goto(`/products/${id}`);
+    await page.getByRole('button', { name: 'Add to bag' }).click();
+    await expect(page).toHaveURL(/\/cart$/);
+  }
+  await expect(page.getByTestId('bag-subtotal')).toHaveText('€2,200.00');
+  const quantity = page.getByRole('spinbutton', { name: 'Quantity for Atelier Horizon Sand' });
+  await quantity.fill('3');
+  const update = page.getByRole('button', { name: 'Update Atelier Horizon Sand' });
+  await update.click();
+  await expect(page.getByRole('status').filter({ hasText: 'Bag updated.' })).toBeVisible();
+  await expect(page.getByTestId('bag-subtotal')).toHaveText('€4,100.00');
+  await expect(page.getByText('4 watches in your bag', { exact: true })).toBeVisible();
+  await expect(update).toBeFocused();
+
+  await quantity.fill('6');
+  await update.click();
+  await expect(page.getByRole('status').filter({ hasText: 'That quantity is not available.' })).toBeVisible();
+  await expect(page.getByTestId('bag-subtotal')).toHaveText('€4,100.00');
+
+  await page.getByRole('button', { name: 'Remove Atelier Horizon Sand' }).click();
+  const status = page.getByRole('status').filter({ hasText: 'Watch removed from your bag.' });
+  await expect(status).toBeVisible();
+  await expect(status).toBeFocused();
+  await expect(page.getByRole('list', { name: 'Bag items' }).getByRole('listitem')).toHaveCount(1);
+  await expect(page.getByTestId('bag-subtotal')).toHaveText('€1,250.00');
+
+  await page.getByRole('button', { name: 'Remove Atelier Horizon' }).click();
+  await expect(page.getByText('Your bag is empty.')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Watch removed from your bag.' })).toBeFocused();
+});
+
+test.describe('editing without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+  test('native forms update and remove lines', async ({ page }) => {
+    await page.goto('/products/watch-005');
+    await page.getByRole('button', { name: 'Add to bag' }).click();
+    await expect(page).toHaveURL(/\/cart$/);
+    await page.getByRole('spinbutton', { name: 'Quantity for Atelier Meridian Classic' }).fill('2');
+    await page.getByRole('button', { name: 'Update Atelier Meridian Classic' }).click();
+    await expect(page.getByText('Bag updated.')).toBeVisible();
+    await expect(page.getByTestId('bag-subtotal')).toHaveText('€2,200.00');
+    await page.getByRole('button', { name: 'Remove Atelier Meridian Classic' }).click();
+    await expect(page.getByText('Your bag is empty.')).toBeVisible();
+  });
 });
