@@ -1,39 +1,30 @@
 # Verification and operational quality
 
-## Current foundation
+## Current coverage
 
-`node scripts/check-foundation.mjs` checks repository consistency, local documentation links, JSON, skill metadata/budgets and contract examples. It does not validate framework compilation or implement an OpenAPI/JSON Schema validator. No application tests exist yet.
+- npm run check: JSON, local links, skills, recorded versions and contract invariants.
+- npm run typecheck and npm run build: shared package, services and Next compilation.
+- npm test: both OpenAPI 3.1 documents, domain guards, typed-client invalid JSON/status/redaction/timeout tests and real client -> Express -> HTTP provider tests.
+- npm run test:e2e: Chromium against production servers, initial HTML/navigation/price/stock and HTTP 404. No E2E cart/order coverage exists yet.
 
-## Implementation test strategy
+HTTP tests exercise normalization, missing/invalid identifiers, upstream failures, malformed responses, timeout, unexpected queries, request-ID propagation and malformed URL encoding. Test-only fixtures control failures. Do not replace these tests with mocks merely because an execution environment blocks loopback networking. See [STATUS](STATUS.md) for actual results.
 
-| Risk | Verification | Expected evidence |
-| --- | --- | --- |
-| Client manipulates price | Provider integration test sends an extra price/total; reject it and verify server-priced valid order | Exact charged cents from server fixture |
-| Last unit sold twice | Two order submissions against isolated fixture | One succeeds, one 409, stock never negative |
-| Confirmation repeated | Same idempotency key/body twice, then different body | Same order returned; different body 409 |
-| Bad quantity/product | Boundary cases and unknown ID | 400/404, no inventory mutation |
-| Provider times out/fails | Controlled local provider fixture | Stable 504/502, request ID, no stack leak |
-| UI/URL drifts | Component + integration tests | Filters survive navigation; cart updates are announced |
-| User cannot buy via keyboard | Playwright keyboard journey + manual focus check | Catalog -> detail -> cart -> confirmation |
-| Server rendering breaks | Next production build + E2E | Product HTML present, hydration clean |
+## CI
 
-Use Vitest for pure domain functions and adapters; React Testing Library for meaningful Client Component behavior; Playwright for full journeys and async Server Components. Avoid assertions on internal hook calls and broad snapshots. Use deterministic fixtures and reset them between tests. Add a standards-aware OpenAPI validator in M1; the foundation structural checks do not replace it.
+Pinned Node -> npm ci -> structural checks -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint, SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.
 
-## CI progression
+## Risks for later milestones
 
-M0: checkout -> Node -> dependency-free foundation check. M1+: setup pinned Node/npm -> `npm ci` -> typecheck -> lint -> focused unit/integration tests -> build. M4: add Chromium Playwright against production servers; expand browser coverage if evidence warrants it. Keep logs and artifacts bounded; screenshots/traces on failure with a short retention period.
+| Risk | Verification |
+| --- | --- |
+| Manipulated price | Reject price/total fields; valid order charged in exact server-owned cents |
+| Overselling | Concurrent last-unit orders: one success, stock never negative |
+| Duplicate confirmation | Same key/body returns same order; changed body conflicts |
+| Invalid quantities | Boundary cases reject without inventory mutation |
+| URL/UI drift | Filters survive reload and navigation |
+| Inaccessible journey | Keyboard catalog -> detail -> cart -> confirmation; focus and announcements |
+| Slow/failed provider | Stable 502/504, safe envelope and correlation ID |
 
-Configure SonarQube and Snyk only with approved account/project access. Read secrets from GitHub Actions secrets; never write tokens into YAML or publish scanner reports containing credentials. A skipped scan is a skipped scan. Add dependency review after an actual lockfile exists. No arbitrary coverage percentage as a proxy for quality.
+Use meaningful behavior tests and deterministic fixtures; add component testing when interactive Client Components need it. Never share-cache private responses. Runtime-validate JSON, keep addresses/secrets server-only, and implement origin/session ownership for future mutations. Bound input size/counts and upstream calls.
 
-## Security, accessibility and performance
-
-- Runtime-validate untrusted bodies and provider responses. TypeScript does not validate JSON at runtime.
-- Keep secrets server-only; avoid broad CORS. Verify mutation origin, guest ownership, HttpOnly cookies and bounded inputs.
-- Request only IDs/quantities for orders. Calculate money in integer cents server-side and atomically accept orders.
-- Use semantic landmarks, labelled controls, visible focus, image alternatives and an announced cart status.
-- Measure baseline production LCP/CLS/INP or lab proxies with conditions recorded before claiming improvements. Do not benchmark dev mode or invent a score.
-- Explicitly cache public catalog data, never private carts/orders. Bound provider timeouts and log correlation IDs.
-
-## Demo limitations
-
-In-memory state is single-process and resets at restart. There are no real payments, tax/shipping engine or production identity controls. Fixtures emulate separate commercial services. Deployment-grade distributed consistency is out of scope; explain its required changes in the interview.
+Measure production performance with conditions recorded before claiming improvements. The demo has fictional providers, no payment/auth/persistent orders, and no deployment-grade distributed consistency.

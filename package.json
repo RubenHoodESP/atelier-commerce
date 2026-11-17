@@ -3,11 +3,35 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Composable storefront learning project: planning and foundation",
-  "engines": { "node": ">=22.23.5 <27" },
-  "workspaces": ["apps/*", "packages/*"],
+  "description": "Composable watch storefront with a typed Express integration API",
+  "engines": {
+    "node": ">=22.23.5 <27"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "check": "node scripts/check-foundation.mjs",
-    "context": "node scripts/context.mjs"
+    "context": "node scripts/context.mjs",
+    "build:services": "npm run build -w @atelier/contracts && npm run build -w @atelier/mock-services && npm run build -w @atelier/middleware",
+    "build": "npm run build:services && npm run build -w @atelier/storefront",
+    "typecheck": "npm run build -w @atelier/contracts && tsc -p apps/mock-services/tsconfig.json --noEmit && tsc -p apps/middleware/tsconfig.json --noEmit && tsc -p apps/storefront/tsconfig.json --noEmit",
+    "test": "npm run build:services && vitest run",
+    "test:e2e": "playwright test",
+    "dev": "npm run build:services && node scripts/run-stack.mjs dev",
+    "start": "node scripts/run-stack.mjs start"
+  },
+  "devDependencies": {
+    "express": "4.22.3",
+    "@types/express": "4.17.25",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@playwright/test": "1.65.1",
+    "@apidevtools/swagger-parser": "12.1.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
   }
 }

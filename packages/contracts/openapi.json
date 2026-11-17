@@ -3,19 +3,18 @@
   "info": {
     "title": "Atelier Mock Commerce Provider",
     "version": "0.1.0",
-    "description": "Proposed local provider contract. Not implemented; not the Alokai SDK wire protocol."
+    "description": "Local mock provider contract: product GET is implemented in M1; order POST remains planned for M3. Product and Money schemas also document the normalized domain model. The separate bff-openapi.json describes the public integration API."
   },
-  "servers": [{ "url": "http://localhost:4100", "description": "Planned local mock" }],
+  "servers": [{ "url": "http://127.0.0.1:4100", "description": "Local fictional provider" }],
   "paths": {
     "/products/{id}": {
       "get": {
         "operationId": "getProduct",
         "summary": "Read one fictional product",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 80 } }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^watch-[0-9]{3}$" } }],
         "responses": {
-          "200": { "description": "Product", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Product" } } } },
-          "404": { "$ref": "#/components/responses/Failure" },
-          "500": { "$ref": "#/components/responses/Failure" }
+          "200": { "description": "Vendor-shaped product, normalized by the Express BFF adapter", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProviderProduct" } } } },
+          "404": { "description": "Unknown vendor SKU", "content": { "application/json": { "schema": { "type": "object", "required": ["error"], "additionalProperties": false, "properties": { "error": { "type": "string", "const": "Unknown SKU" } } } } } }
         }
       }
     },
@@ -23,7 +22,7 @@
       "post": {
         "operationId": "createOrder",
         "summary": "Atomically validate server prices and stock and accept a simulated order",
-        "description": "Same key and body return the same order. Reusing a key with another body is a conflict. In-memory state resets on restart. Product IDs must be unique within the request.",
+        "description": "Planned M3 operation; not implemented in M1. Same key and body return the same order. Reusing a key with another body is a conflict. In-memory state resets on restart. Product IDs must be unique within the request.",
         "parameters": [{ "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 16, "maxLength": 100 } }],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderInput" }, "example": { "items": [{ "productId": "watch-001", "quantity": 2 }] } } } },
         "responses": {
@@ -39,6 +38,20 @@
   },
   "components": {
     "schemas": {
+      "ProviderProduct": {
+        "type": "object", "additionalProperties": false,
+        "required": ["sku", "display_name", "collection_name", "unit_price", "available_units"],
+        "properties": {
+          "sku": { "type": "string", "pattern": "^watch-[0-9]{3}$" },
+          "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "collection_name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "unit_price": {
+            "type": "object", "additionalProperties": false, "required": ["cents", "currency_code"],
+            "properties": { "cents": { "type": "integer", "minimum": 0 }, "currency_code": { "type": "string", "const": "EUR" } }
+          },
+          "available_units": { "type": "integer", "minimum": 0 }
+        }
+      },
       "Money": {
         "type": "object", "additionalProperties": false,
         "required": ["amountMinor", "currency"],
