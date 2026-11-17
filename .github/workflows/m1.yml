@@ -30,5 +30,7 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - name: Check package availability and compatibility metadata
-        run: node scripts/inspect-stack.mjs
+      - name: Install official public Alokai components for compatibility probe
+        run: npm install --prefix .local/alokai-probe --no-audit --no-fund @vue-storefront/middleware@5.4.1 @vue-storefront/sdk@3.4.2
+      - name: Inspect exported public APIs
+        run: node scripts/probe-public-alokai.mjs
