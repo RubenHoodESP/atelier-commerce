@@ -43,7 +43,15 @@ check('runtime pins', () => {
 check('research provenance', () => {
   const record = json('docs/stack-research.json');
   assert.match(record.checkedOn, /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(record.compatibilityValidated, false, 'update this check when M1 provides evidence');
+  assert.equal(typeof record.compatibilityValidated, 'boolean');
+  if (record.compatibilityValidated) {
+    assert.ok(existsSync(join(root, 'package-lock.json')), 'validated stack needs its generated lockfile');
+    assert.equal(new URL(record.validationRun).hostname, 'github.com');
+    const lock = json('package-lock.json');
+    for (const item of record.packages.filter(item => item.installed)) {
+      assert.equal(lock.packages[`node_modules/${item.name}`]?.version, item.installed);
+    }
+  }
   for (const item of record.packages) {
     assert.match(item.candidate, /^\d+\.\d+\.\d+$/);
     assert.equal(new URL(item.source).protocol, 'https:');

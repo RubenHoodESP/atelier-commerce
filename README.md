@@ -1,52 +1,58 @@
 # Atelier Commerce
 
-A small composable watch storefront for learning modern frontend engineering and explaining end-to-end technical decisions in interviews. Fictional brand; no affiliation with a luxury group.
+A small composable watch storefront for learning frontend engineering and explaining end-to-end decisions in interviews. Fictional brand; demonstration only.
 
-**Status:** planning and repository foundation. The storefront, middleware and commerce API are not implemented yet. Runtime dependencies have not been installed or integration-tested.
+**M1 implemented:** Next.js -> official public Alokai SDK -> public Alokai middleware -> local HTTP product provider. A server-rendered product, runtime validation, normalization, bounded upstream calls and safe failures are working. Connect 2.5 still requires unavailable credentials; see [ADR 0003](docs/adr/0003-public-alokai-integration.md). The public SDK/middleware APIs are explicitly older.
+
+## Run locally
+
+Use Node **22.23.5** and npm **10.9.9**. From this repository:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://127.0.0.1:3000/products/watch-001. The command builds the TypeScript services, starts the mock provider (4100), Alokai middleware (4000) and Next development server (3000). It stops them together with Ctrl+C. Service source changes require restarting this command; Next UI changes use its development reload.
+
+Defaults work without configuration. To override them, copy [.env.example](.env.example) to .env in the repository root. Values stay on the server. Services bind to loopback. To run a production build: npm run build, then npm start. The product route is rendered on demand, so providers need not run during the build.
+
+## Verify
+
+```sh
+npm run check
+npm run typecheck
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+CI uses npm ci on Node 22.23.5, validates OpenAPI 3.1, runs 8 Vitest checks and 2 Chromium E2E checks against production servers. The E2E checks assert initial product HTML, navigation, price/stock and an HTTP 404 for unknown products. See [current evidence](docs/STATUS.md). Security scanners, lint and measured performance/accessibility audits are still pending; passing these tests does not imply they ran.
 
 ## Start here
 
 - [Development plan, in Spanish](docs/PLAN.md)
 - [Architecture and boundaries](docs/ARCHITECTURE.md)
-- [Stack research and compatibility gates](docs/STACK.md)
-- [Current task and handoff](docs/STATUS.md)
-- [Quality and security strategy](docs/QUALITY.md)
-- [Interview evidence](docs/INTERVIEW.md)
+- [Stack and exact versions](docs/STACK.md)
+- [Current state and next task](docs/STATUS.md)
+- [Quality strategy](docs/QUALITY.md)
+- [Interview practice](docs/INTERVIEW.md)
 - [Agent instructions](AGENTS.md)
 
-## Intended first journey
-
-Browse watches, open a product, add a quantity to a cart and confirm a simulated order. The commerce service owns prices and stock. The browser never supplies an authoritative price. No real payments or personal customer data.
-
-## Foundation commands
-
-The foundation uses only built-in Node.js APIs. No installation is needed for these commands:
-
-```sh
-node scripts/check-foundation.mjs
-node scripts/context.mjs integration
-node scripts/context.mjs frontend
-node scripts/context.mjs quality
-node scripts/context.mjs planning
-```
-
-Use Node **22.23.5** for the future application. These dependency-free maintenance scripts also run on Node 24. There is deliberately no `dev` or application `test` command yet. The first development milestone adds real commands and a generated npm lockfile after resolving package access and compatibility.
+Use node scripts/context.mjs integration (or frontend, quality, planning) to locate relevant context without loading all documentation.
 
 ## Repository areas
 
 | Area | Responsibility |
 | --- | --- |
-| `apps/storefront` | Next.js App Router, React, TypeScript and Tailwind |
-| `apps/middleware` | Alokai SDK-facing integration boundary, Node and Express |
-| `apps/mock-services` | Deterministic local commerce and content provider APIs |
-| `packages/contracts` | Public schemas, examples and API contract |
-| `docs/adr` | Decisions and consequences |
-| `.agents/skills` | Small project workflows loaded only when relevant |
+| apps/storefront | Next App Router, React, server-only SDK and initial CSS |
+| apps/middleware | Actual public Alokai integration, provider normalization and timeouts |
+| apps/mock-services | Deterministic fictional HTTP product provider |
+| packages/contracts | Domain types/guards, provider OpenAPI and planned order examples |
+| docs/adr | Decisions and limitations |
+| .agents/skills | Three versioned project workflows loaded selectively |
 
-## Next milestone
+Next: **M2**, catalog, URL filters, brand content and Tailwind. Cart and order acceptance belong to M3. No real enterprise provider, account or payment is connected.
 
-Complete **M1: compatibility spike** before implementing the store. Prove one product can travel from a local provider through real Alokai middleware to Next.js. An Express-only fallback must be labelled as such; it does not count as Alokai experience.
-
-## Repository
-
-[RubenHoodESP/atelier-commerce](https://github.com/RubenHoodESP/atelier-commerce) is private. Its default branch is `master`. Do not upload the job PDF, CV, credentials or personal notes. See [the publication runbook](docs/PUBLISH.md).
+[RubenHoodESP/atelier-commerce](https://github.com/RubenHoodESP/atelier-commerce) is private; default branch master. Do not upload the job PDF, CV, credentials or personal notes. See [publication](docs/PUBLISH.md).

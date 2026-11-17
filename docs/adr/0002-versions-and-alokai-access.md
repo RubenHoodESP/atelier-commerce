@@ -1,6 +1,6 @@
 # ADR 0002: Stable versions with compatibility gates
 
-Status: researched proposal, not runtime-validated.
+Status: M1 runtime combination validated; Alokai access decision refined by [ADR 0003](0003-public-alokai-integration.md).
 
 Pin the current stable candidates recorded in `docs/stack-research.json`; use Node 22.23.5 as the Alokai-oriented baseline. The ecosystem label and Connect package version differ. Preserve Alokai's supported Express major and inspect its patched transitives before attempting an upgrade.
 

@@ -1,21 +1,125 @@
 {
   "checkedOn": "2026-11-17",
-  "status": "researched-not-installed",
-  "compatibilityValidated": false,
-  "runtime": { "name": "node", "version": "22.23.5", "source": "https://nodejs.org/en/blog/release/v22.23.5" },
+  "status": "public-alokai-m1-validated-connect-access-blocked",
+  "compatibilityValidated": true,
+  "runtime": {
+    "name": "node",
+    "version": "22.23.5",
+    "source": "https://nodejs.org/en/blog/release/v22.23.5"
+  },
   "packages": [
-    { "name": "next", "candidate": "16.4.6", "source": "https://registry.npmjs.org/next/latest", "evidence": "registry" },
-    { "name": "react", "candidate": "19.3.1", "source": "https://registry.npmjs.org/react/latest", "evidence": "registry" },
-    { "name": "react-dom", "candidate": "19.3.1", "source": "https://react.dev/versions", "evidence": "matching-release-pending" },
-    { "name": "typescript", "candidate": "7.0.2", "source": "https://registry.npmjs.org/typescript/latest", "evidence": "registry" },
-    { "name": "tailwindcss", "candidate": "4.3.5", "source": "https://registry.npmjs.org/tailwindcss/latest", "evidence": "registry" },
-    { "name": "@alokai/connect", "candidate": "2.5.2", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-release-registry-pending" },
-    { "name": "express", "candidate": "4.22.3", "workspace": "middleware", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-compatibility-baseline" },
-    { "name": "body-parser", "candidate": "1.20.9", "workspace": "middleware", "source": "https://docs.alokai.com/alokai-versions/2.5", "evidence": "vendor-compatibility-baseline" },
-    { "name": "express", "candidate": "5.3.0", "workspace": "mock-services", "source": "https://registry.npmjs.org/express/latest", "evidence": "registry" },
-    { "name": "vitest", "candidate": "5.1.0", "source": "https://registry.npmjs.org/vitest/latest", "evidence": "registry" },
-    { "name": "@playwright/test", "candidate": "1.65.1", "source": "https://registry.npmjs.org/@playwright/test/latest", "evidence": "registry" }
+    {
+      "name": "next",
+      "candidate": "16.4.6",
+      "source": "https://registry.npmjs.org/next/latest",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "16.4.6"
+    },
+    {
+      "name": "react",
+      "candidate": "19.3.1",
+      "source": "https://registry.npmjs.org/react/latest",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "19.3.1"
+    },
+    {
+      "name": "react-dom",
+      "candidate": "19.3.1",
+      "source": "https://react.dev/versions",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "19.3.1"
+    },
+    {
+      "name": "typescript",
+      "candidate": "7.0.2",
+      "source": "https://registry.npmjs.org/typescript/latest",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "7.0.2"
+    },
+    {
+      "name": "tailwindcss",
+      "candidate": "4.3.5",
+      "source": "https://registry.npmjs.org/tailwindcss/latest",
+      "evidence": "candidate-deferred",
+      "installed": null
+    },
+    {
+      "name": "@alokai/connect",
+      "candidate": "2.5.2",
+      "source": "https://docs.alokai.com/alokai-versions/2.5",
+      "evidence": "public-404-vendor-registry-401",
+      "installed": null
+    },
+    {
+      "name": "express",
+      "candidate": "4.22.3",
+      "workspace": "middleware",
+      "source": "https://docs.alokai.com/alokai-versions/2.5",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "4.22.3"
+    },
+    {
+      "name": "body-parser",
+      "candidate": "1.20.9",
+      "workspace": "middleware",
+      "source": "https://docs.alokai.com/alokai-versions/2.5",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "1.20.9"
+    },
+    {
+      "name": "vitest",
+      "candidate": "5.1.0",
+      "source": "https://registry.npmjs.org/vitest/latest",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "5.1.0"
+    },
+    {
+      "name": "@playwright/test",
+      "candidate": "1.65.1",
+      "source": "https://registry.npmjs.org/@playwright/test/latest",
+      "evidence": "npm-ci-typecheck-build-and-product-tests",
+      "installed": "1.65.1"
+    },
+    {
+      "name": "@vue-storefront/middleware",
+      "candidate": "5.4.1",
+      "installed": "5.4.1",
+      "source": "https://registry.npmjs.org/@vue-storefront/middleware/5.4.1",
+      "evidence": "npm-ci-typecheck-build-and-product-tests"
+    },
+    {
+      "name": "@vue-storefront/sdk",
+      "candidate": "3.4.2",
+      "installed": "3.4.2",
+      "source": "https://registry.npmjs.org/@vue-storefront/sdk/3.4.2",
+      "evidence": "npm-ci-typecheck-build-and-product-tests"
+    },
+    {
+      "name": "vite",
+      "candidate": "8.3.8",
+      "installed": "8.3.8",
+      "source": "https://registry.npmjs.org/vite/8.3.8",
+      "evidence": "npm-ci-typecheck-build-and-product-tests"
+    },
+    {
+      "name": "@apidevtools/swagger-parser",
+      "candidate": "12.1.0",
+      "installed": "12.1.0",
+      "source": "https://registry.npmjs.org/@apidevtools/swagger-parser/12.1.0",
+      "evidence": "npm-ci-typecheck-build-and-product-tests"
+    }
   ],
   "alokaiEcosystemRelease": "2.5.5",
-  "pending": ["registry access and license", "React DOM matching release", "TypeScript tooling compatibility", "Vite and React Testing Library peers", "Tailwind PostCSS adapter", "generated lockfile", "build and real integration smoke test"]
+  "pending": [
+    "Connect credentials and migration",
+    "Tailwind/PostCSS in M2",
+    "Client Component testing when needed",
+    "security scanners and measured audits in M4"
+  ],
+  "validationScope": "Installed M1 public-package combination only; not Connect, Tailwind, RTL or security scanners.",
+  "validationRun": "https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44070965486",
+  "packageManager": {
+    "name": "npm",
+    "version": "10.9.9"
+  }
 }

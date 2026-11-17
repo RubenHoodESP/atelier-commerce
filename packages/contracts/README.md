@@ -1,5 +1,7 @@
-# Public demo contract
+# Demo contracts
 
-[openapi.json](openapi.json) specifies the intended **mock commerce provider API**, not Alokai's generated endpoints. It is a design input, not an implemented API. Alokai SDK transport mapping is verified in M1.
+`src/index.ts` exports normalized domain types, runtime guards and the typed Alokai `CommerceEndpoints` / `ProductResult` boundary. It has no React or Express dependency. Provider-specific field names live in the integration adapter.
 
-The initial contract defines product retrieval and order creation. Extend it with catalog, content and cart operations when their slices are implemented. Schema examples are checked by the foundation script for key invariants; add a full OpenAPI/JSON Schema validator in M1.
+[openapi.json](openapi.json) documents the local mock provider: vendor-shaped product retrieval is implemented in M1; order creation is explicitly planned for M3. It also records normalized domain schemas. It does not describe Alokai's generated RPC transport. Runtime integration tests exercise normalization and safe failures; Swagger Parser validates the full OpenAPI 3.1 document.
+
+Order examples and invariants remain design inputs until their implementation. See [examples](examples.json) and [the architecture](../../docs/ARCHITECTURE.md).

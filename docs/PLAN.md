@@ -21,7 +21,7 @@ Las horas son estimaciones de trabajo concentrado, no fechas comprometidas. Ajus
 | M4 | Pruebas de riesgos; CI; seguridad, rendimiento y accesibilidad | Checks reproducibles, prueba de fallo de proveedor y recorrido E2E sobre build de producción | 3-5 h |
 | M5 | Ensayo de entrevista y documentación de límites | Demo de 5 min y explicación en inglés de arquitectura, pruebas y una decisión alternativa | 1-2 h |
 
-## M1: tareas exactas para empezar
+## M1: tareas y resultado
 
 1. Instalar/seleccionar Node 22.23.5 sin sustituir globalmente otros entornos.
 2. Comprobar la disponibilidad y licencia de `@alokai/connect@2.5.2`. Confirmar sus exports `/sdk`, `/middleware` y `/integration-kit`, engines, dependencias y peer dependencies.
@@ -32,7 +32,7 @@ Las horas son estimaciones de trabajo concentrado, no fechas comprometidas. Ajus
 7. Inicializar el SDK de Alokai en una capa de acceso a datos de Next. Mostrar el producto en un Server Component.
 8. Ejecutar build/typecheck y una comprobación de integración. Guardar comandos, versiones resueltas y resultado en `docs/STATUS.md`.
 
-Si el paquete actual de Alokai exige acceso no disponible, detener esa parte y documentar el bloqueo. Se puede avanzar con el adaptador Express bajo una etiqueta explícita; no marcar M1-Alokai como completado ni cambiar silenciosamente a paquetes legacy.
+Resultado M1: Connect 2.5.2 requiere credenciales no disponibles. Se ha elegido de forma explícita una integración real con los componentes públicos oficiales SDK 3.4.2 y middleware 5.4.1; no equivale a Connect actual. La instalación reproducible, typecheck, build, 8 pruebas de contrato/integración y 2 E2E han pasado en Node 22.23.5. Véanse [ADR 0003](adr/0003-public-alokai-integration.md) y [evidencia](STATUS.md). La migración a Connect sigue pendiente de acceso.
 
 ## Historias y criterios de aceptación
 

@@ -63,4 +63,3 @@ describe('real public Alokai SDK -> middleware -> HTTP provider', () => {
     expect(await sdk.getProduct({ id: 'watch-001' })).toMatchObject({ ok: false, error: { code: 'UPSTREAM_TIMEOUT' } });
   });
 });
-

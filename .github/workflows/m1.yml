@@ -2,14 +2,8 @@ name: M1 product integration
 
 on:
   push:
-    branches: [feat/m1-product-integration]
+    branches: [master, feat/m1-product-integration]
   pull_request:
-    paths:
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'package*.json'
-      - '.github/workflows/m1.yml'
 
 permissions:
   contents: read
@@ -32,6 +26,11 @@ jobs:
           package-manager-cache: false
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+          npm ls express body-parser --all
       - run: npm run check
       - run: npm run typecheck
       - run: npm test
