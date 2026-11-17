@@ -21,7 +21,12 @@ if (!existsSync(oxlint)) {
   process.exit(0);
 }
 
-const result = spawnSync(process.execPath, [oxlint, '--type-aware', '--deny-warnings', path], { cwd: root, encoding: 'utf8' });
+// Type-aware rules need the compiled @atelier/contracts declarations. Without them every shared
+// type resolves to an error type and produces false findings, so fall back to syntactic lint.
+const typesReady = existsSync(resolve(root, 'packages/contracts/dist/index.d.ts'));
+if (!typesReady) console.error('Type-aware lint skipped: run `npm run build -w @atelier/contracts` first.');
+const flags = typesReady ? ['--type-aware', '--deny-warnings'] : ['--deny-warnings'];
+const result = spawnSync(process.execPath, [oxlint, ...flags, path], { cwd: root, encoding: 'utf8' });
 if (result.status === 0) process.exit(0);
 console.error(`oxlint found problems in ${path}:\n${result.stdout}${result.stderr}`);
 process.exit(2);
