@@ -6,6 +6,15 @@
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
 
+## Pre-M3 quality slice: lint, CI step and Claude Code settings
+
+- Added `npm run lint` (oxlint 1.91.0, `.oxlintrc.json`, warnings fail). ESLint + `eslint-config-next` was not adopted: its typescript-eslint 8.73.0 peer range excludes the pinned TypeScript 7.0.2 and npm would only install it by overriding the peer. Details and every disabled rule are in [QUALITY](QUALITY.md#lint-decisions).
+- Behavior-preserving fixes found by lint: one conditional `expect`, one untyped `vi.fn`, two shadowed names in scripts and a documented false positive in `scripts/run-stack.mjs`. No application code changed.
+- `.github/workflows/m1.yml` runs `npm run lint` after `npm run check`. Both workflows already ran on every `pull_request`; triggers were not changed.
+- `.claude/settings.json` adds a PostToolUse lint-on-edit hook plus allow/deny permission rules ([QUALITY](QUALITY.md#claude-code-project-settings)).
+- Checks on Node 22.23.5 / npm 10.9.9 (2026-11-17): `npm ci`, `npm run check`, `npm run lint`, `npm run typecheck`, `npm test` (**47 passed in 5 files**) and `npm run build` passed. A probe component confirmed lint reports rules-of-hooks, exhaustive-deps, set-state-in-effect and no-img-element. The hook was pipe-tested (clean file exit 0, violation exit 2, Markdown skipped) and fired on a real Write in a Claude session. `npm start` smoke: `/products` 200, `/products/watch-999` 404. **E2E was not run** for this slice (no application code changed); CI for this branch is unverified.
+- Not added: type-aware lint, formatter, SonarQube/Snyk or audits; those remain M4.
+
 ## M2 validation in the cloud machine
 
 Node **22.23.5**, npm **10.9.9**:
@@ -23,7 +32,7 @@ The ignored cloud browser config uses `/usr/bin/chromium`; the exact Playwright-
 
 M1 CI passed 19 Vitest and 2 Chromium E2E tests: https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459. This is historical M1 evidence, not a CI result for the current M2 changes.
 
-Cart, orders, stock writes, sessions and idempotency remain **M3**. Lint, SonarQube, Snyk and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
+Cart, orders, stock writes, sessions and idempotency remain **M3**. Basic syntactic lint exists; SonarQube, Snyk, type-aware lint and measured accessibility/performance audits remain **M4**. There are no real payments, accounts, persistent orders or enterprise providers. Project-local skills remain versioned in Git.
 
 ## Publication and handoff
 

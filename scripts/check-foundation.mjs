@@ -55,7 +55,7 @@ check('research provenance', () => {
     assert.ok(existsSync(join(root, 'package-lock.json')), 'validated stack needs its generated lockfile');
     assert.equal(new URL(record.validationRun).hostname, 'github.com');
     const lock = json('package-lock.json');
-    for (const item of record.packages.filter(item => item.installed)) {
+    for (const item of record.packages.filter(entry => entry.installed)) {
       assert.equal(lock.packages[`node_modules/${item.name}`]?.version, item.installed);
     }
   }

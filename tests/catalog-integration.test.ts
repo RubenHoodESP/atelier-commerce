@@ -38,7 +38,7 @@ describe('catalog HTTP boundary', () => {
     const { client } = await setup();
     const result = await client.getProducts({ collection });
     expect(result).toMatchObject({ ok: true, total: 4 });
-    if (result.ok) expect(result.products.every(item => item.collection.toLowerCase() === collection)).toBe(true);
+    expect(result.ok && result.products.every(item => item.collection.toLowerCase() === collection)).toBe(true);
   });
   it.each([
     ['featured', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],

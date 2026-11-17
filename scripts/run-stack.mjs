@@ -24,9 +24,11 @@ function launch(args, cwd = root) {
 }
 async function waitFor(url) {
   const deadline = Date.now() + 20000;
+  // `stopping` changes in the signal/exit handlers while this loop awaits.
+  // oxlint-disable-next-line no-unmodified-loop-condition
   while (Date.now() < deadline && !stopping) {
     try { if ((await fetch(url, { signal: AbortSignal.timeout(1000) })).ok) return; } catch {}
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(done => setTimeout(done, 200));
   }
   throw new Error(`Service did not become ready: ${url}`);
 }

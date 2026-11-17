@@ -27,8 +27,9 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
 - M2: 12 productos en Horizon/Meridian/Nocturne, catálogo SSR, filtros/ordenación URL, historial y regreso desde detalle, agotados consultables, contenido editorial por HTTP con respaldo local, Tailwind y navegación adaptable/accesible básica.
+- Antes de M3 se añadió lint sintáctico (oxlint), su paso de CI y `.claude/settings.json` con hook de lint al editar; ver [QUALITY](QUALITY.md#lint-decisions).
 - M3 pendiente: carrito invitado, sesiones, escrituras, pedidos, stock concurrente e idempotencia.
-- M4 pendiente: lint, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
+- M4 pendiente: lint con tipos, SonarQube/Snyk y auditorías medidas de accesibilidad/rendimiento; no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
@@ -82,6 +83,7 @@ Comprobaciones desde la raíz:
 
 ```sh
 npm run check
+npm run lint
 npm run typecheck
 npm test
 npm run build

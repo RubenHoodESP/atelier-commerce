@@ -40,7 +40,7 @@ describe('typed REST response boundary', () => {
 
 describe('catalog and content transport guards', () => {
   it('sends canonical catalog queries and accepts validated empty results', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true, products: [], total: 0 }));
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ ok: true, products: [], total: 0 }));
     vi.stubGlobal('fetch', fetchMock);
     expect(await client().getProducts({ collection: 'horizon', sort: 'price-asc' })).toEqual({ ok: true, products: [], total: 0 });
     expect(String(fetchMock.mock.calls[0]![0])).toBe('http://127.0.0.1:4000/api/products?collection=horizon&sort=price-asc');
