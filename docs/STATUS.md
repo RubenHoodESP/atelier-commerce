@@ -10,6 +10,7 @@
 
 - [DEMO](DEMO.md): a timed five-minute script (catalog URL state and no-JS, commerce-owned bag and accessible edits, idempotent order with a live concurrency test, themes and axe, evidence and limits), with setup and recovery notes. The live command `npx vitest run tests/order-integration.test.ts -t "last unit|same key create"` was run with the production stack up (2 passed, under 1 s), and `data-theme="dark"` was confirmed in server HTML with the theme cookie.
 - [INTERVIEW](INTERVIEW.md) rewritten in English for M1–M4: one-minute summary, decision stories (need → choice → rejected → verification → limits), lessons from stress runs, clean-clone CI and measurement corrections, and prepared follow-up answers.
+- [INTERVIEW_QA](INTERVIEW_QA.md): study guide in Spanish with ready-to-say English answers for likely questions (why Next.js over plain React, BFF, runtime validation, URL state, cart ownership, idempotency, styling, motion, accessibility, testing, tooling, performance, security, production, STAR stories, AI use).
 - [EXERCISES](EXERCISES.md): a warm-up and two changes for the learner to make without AI (quantity selector on add; bag quantity limited to commerce stock), with acceptance criteria and hints, deliberately without solutions.
 - **Not done (learner):** rehearsing the demo, giving the English explanation, making one exercise change without AI, and the screen-reader pass. M5 is not complete until these are recorded here.
 

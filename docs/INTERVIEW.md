@@ -2,7 +2,7 @@
 
 Atelier Commerce is a learning exercise: a fictional watch store with Next.js, an Express BFF and simulated providers. Describe it as such; it is not professional experience with commercial platforms. For each decision use the pattern **need → constraints → alternatives → choice → verification → limitations**, and be ready to say how AI helped and how its output was checked (tests, mutation checks, clean-clone CI reproduction).
 
-The five-minute walkthrough is in [DEMO](DEMO.md). Evidence for every claim is in [STATUS](STATUS.md).
+The five-minute walkthrough is in [DEMO](DEMO.md). A question-by-question study guide (why each technology and decision) is in [INTERVIEW_QA](INTERVIEW_QA.md). Evidence for every claim is in [STATUS](STATUS.md).
 
 ## One-minute summary
 
