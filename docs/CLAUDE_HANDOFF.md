@@ -6,13 +6,13 @@ Fecha de referencia: 17 de noviembre de 2026. Este documento permite continuar d
 
 Proyecto privado: [RubenHoodESP/atelier-commerce](https://github.com/RubenHoodESP/atelier-commerce), rama principal `master`.
 
-El objetivo es practicar y poder explicar decisiones de frontend senior mediante una pequeña tienda ficticia de relojes. La generación de código no sustituye comprenderlo: cada hito incluye explicación, pruebas y una modificación sin IA.
+El objetivo es practicar y poder explicar decisiones de frontend senior mediante una pequeña tienda ficticia de relojes. La generación de código no sustituye comprenderlo: cada hito incluye explicación y pruebas.
 
 Leer en este orden:
 
 1. [Acuerdo de trabajo](../AGENTS.md): instrucciones comunes a cualquier agente.
 2. [Estado y evidencia](STATUS.md): comportamiento implementado, comprobaciones y pendientes.
-3. [Plan total y aceptación](PLAN.md): alcance y criterios de M0–M5.
+3. [Plan total y aceptación](PLAN.md): alcance y criterios de M0–M4.
 4. [Arquitectura](ARCHITECTURE.md) y [decisiones de M2](adr/0004-catalog-url-and-content.md).
 5. Solo el contexto necesario para la tarea: `node scripts/context.mjs frontend`, `integration`, `quality` o `planning`.
 
@@ -22,7 +22,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M4 están implementados; M5 es el siguiente hito.** M4 tiene excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente.
+**M0–M4 están implementados.** M4 tiene excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente.
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
@@ -35,8 +35,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - M4 corte 3: lint con tipos (`oxlint-tsgolint` 7.0.2005, compatible con TypeScript 7.0.2) en `npm run lint`, CI y hook; 59 hallazgos corregidos sin cambiar comportamiento, sustituyendo aserciones por guards que estrechan el tipo.
 - M4 corte 4: `npm run audit` en CI con [riesgos aceptados](security/accepted-risks.json) con fecha de revisión; producción sin vulnerabilidades; el aviso de picomatch (solo herramientas de test, sin versión corregida) aceptado hasta el 2026-12-18.
 - M4 corte 5: Lighthouse 13.6.0 fijado vía `npx` (`npm run perf`), medianas de laboratorio en [PERFORMANCE](PERFORMANCE.md); el LCP de las rutas con entrada animada es optimista y está documentado. Tabla de cierre en [STATUS](STATUS.md#m4-acceptance-against-plan).
-- Pendiente de M4: revisión manual con lector de pantalla (del alumno) y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
-- M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
+- Pendiente de M4: revisión manual con lector de pantalla y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
 
@@ -123,7 +122,7 @@ El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa 
 
 ## 7. M3 (completado) y cómo continuar
 
-Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). El corte 3 añadió la confirmación de pedido con idempotencia y el corte 4 cerró M3. Siguiente: M4 (herramientas de calidad reales y medidas) y M5. No introducir autenticación de cuentas.
+Los cortes 1–2 (bolsa invitada con edición) están hechos: sesión opaca HttpOnly, Server Actions same-origin con rechazo de otro origen probado, carrito propiedad de comercio y edición idempotente (fijar cantidad, 0 elimina). El corte 3 añadió la confirmación de pedido con idempotencia y el corte 4 cerró M3. M4 añadió herramientas de calidad reales y medidas. No introducir autenticación de cuentas.
 
 Implementado y probado en el corte 3: cantidades enteras acotadas, IDs únicos, rechazo de campos de precio/total manipulados, recálculo de precios y validación de stock por comercio. La operación simulada debe aceptar todo o rechazar todo.
 
@@ -133,4 +132,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M4 están implementados y M5 es el siguiente hito. Explica en español y conserva la interfaz en inglés. Revisa `docs/STATUS.md` (sección Next action) y propón primero el siguiente corte pequeño y verificable, respetando la autoridad de comercio sobre precios/stock y la idempotencia de pedidos. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M4 están implementados. Siguiente: despliegue (Vercel + servicio único en Render). Explica en español y conserva la interfaz en inglés. Revisa `docs/STATUS.md` (sección Next action) y propón primero el siguiente corte pequeño y verificable, respetando la autoridad de comercio sobre precios/stock y la idempotencia de pedidos. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.

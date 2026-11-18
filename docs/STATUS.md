@@ -1,6 +1,6 @@
 # Current state
 
-- **M0–M4 implemented** with documented exceptions (SonarQube/Snyk not run; the learner's screen-reader pass pending). M5 (interview rehearsal) is next. M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M4 implemented** with documented exceptions (SonarQube/Snyk not run; the manual screen-reader pass pending). M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review; M4 the quality and risk tooling. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
@@ -84,7 +84,6 @@
 | Writes not retried automatically | `reports a slow provider write as a timeout and does not retry it`, `reports a slow order write as a timeout without retrying it` (exactly one upstream call) |
 | Executed checks distinguished from pending scanners | This file lists exact commands; SonarQube, Snyk, axe/Lighthouse, type-aware lint and real screen-reader testing are **not run** (M4) |
 
-Not yet done for the milestone ritual: the learner's modification without AI and the English explanation (M5).
 
 ## Polish slice: motion and display typography (between M3 slices 3 and 4)
 
@@ -152,4 +151,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M5: five-minute demo script, English explanation of the key decisions (update [INTERVIEW](INTERVIEW.md) with M3/M4), and the learner's change made without AI. Still open from M4: the learner's screen-reader pass and the picomatch acceptance review by 2026-12-18; SonarQube/Snyk only if accounts are provided.
+Production deployment: storefront on Vercel and the BFF plus fictional provider as one single-instance service on Render, with a shared token between Next and the BFF (plan agreed, not implemented yet). Still open: the manual screen-reader pass ([A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md)) and the picomatch acceptance review by 2026-12-18; SonarQube/Snyk only if accounts are provided.
