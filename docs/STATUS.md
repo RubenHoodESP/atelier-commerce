@@ -1,10 +1,30 @@
 # Current state
 
-- **M0–M3 implemented; M4 in progress (slices 1–4: themes, accessibility audit, type-aware lint, dependency audit).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M4 implemented** with documented exceptions (SonarQube/Snyk not run; the learner's screen-reader pass pending). M5 (interview rehearsal) is next. M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M4 slice 5: measured performance and M4 closure
+
+- `npm run perf` (`scripts/measure-performance.mjs`) runs pinned `lighthouse@13.6.0` through `npx` (not a repository dependency) on the production build and prints medians. Results, conditions and limits: [PERFORMANCE](PERFORMANCE.md). On 2026-11-18, median of 5 mobile runs with simulated throttling on loopback: score 99–100, LCP 0.62–0.76 s, TBT 75–94 ms, CLS 0 on `/`, `/products`, `/products/watch-001`, `/cart`.
+- Correction found while verifying: on three routes the LCP element is the header wordmark, because entrance-animated headings start at opacity 0 and are not LCP candidates; their LCP is therefore optimistic (documented). Lab data only; no field data.
+- CI verified for #11: both workflows succeeded on the PR (run 44289810544) and the merge (run 44290164195), including the first CI `npm run audit`.
+
+### M4 acceptance against PLAN
+
+| Item | Status | Evidence |
+| --- | --- | --- |
+| Complete CI | Executed | `m1.yml`: check, dependency audit, type-aware lint, typecheck, tests, build, Playwright E2E (managed Chromium); green on #5–#11 and their merges |
+| Lint | Executed | oxlint syntactic + type-aware (`oxlint-tsgolint`), warnings fail; edit hook |
+| Accessibility audit | Executed (automated) | axe WCAG 2.0/2.1/2.2 A/AA on every journey page/state in both themes, 0 violations; theme contrast unit test |
+| Accessibility, manual | **Not run** | Screen-reader pass for the learner: [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md) |
+| Dependency scan | Executed | `npm audit` gate: production 0 vulnerabilities; one dev advisory accepted until 2026-12-18 |
+| Performance | Executed (lab) | Lighthouse medians in [PERFORMANCE](PERFORMANCE.md); no field data |
+| SonarQube | **Not run** | Requires an account/token; not provided |
+| Snyk | **Not run** | Requires an account/token; not provided |
+| Slow provider → timeout, safe correlated errors, no write retries | Executed | Unit/integration tests from M1–M3 (see M3 table) |
 
 ## M4 slice 4: dependency audit policy
 
@@ -132,4 +152,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M4 slice 5: measured Lighthouse runs on the production build (home, catalog, detail, bag) with recorded conditions and medians, then the M4 closure table separating executed checks from those not run (SonarQube/Snyk need accounts; the learner's screen-reader pass per [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md)). Review the picomatch acceptance by 2026-12-18 at the latest.
+M5: five-minute demo script, English explanation of the key decisions (update [INTERVIEW](INTERVIEW.md) with M3/M4), and the learner's change made without AI. Still open from M4: the learner's screen-reader pass and the picomatch acceptance review by 2026-12-18; SonarQube/Snyk only if accounts are provided.
