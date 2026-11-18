@@ -1,10 +1,17 @@
 # Current state
 
-- **M0–M4 implemented** with documented exceptions (SonarQube/Snyk not run; the learner's screen-reader pass pending). M5 (interview rehearsal) is next. M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M4 implemented** with documented exceptions (SonarQube/Snyk not run; the learner's screen-reader pass pending). M5 materials are prepared; the rehearsal itself is the learner's. M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M5: interview rehearsal materials
+
+- [DEMO](DEMO.md): a timed five-minute script (catalog URL state and no-JS, commerce-owned bag and accessible edits, idempotent order with a live concurrency test, themes and axe, evidence and limits), with setup and recovery notes. The live command `npx vitest run tests/order-integration.test.ts -t "last unit|same key create"` was run with the production stack up (2 passed, under 1 s), and `data-theme="dark"` was confirmed in server HTML with the theme cookie.
+- [INTERVIEW](INTERVIEW.md) rewritten in English for M1–M4: one-minute summary, decision stories (need → choice → rejected → verification → limits), lessons from stress runs, clean-clone CI and measurement corrections, and prepared follow-up answers.
+- [EXERCISES](EXERCISES.md): a warm-up and two changes for the learner to make without AI (quantity selector on add; bag quantity limited to commerce stock), with acceptance criteria and hints, deliberately without solutions.
+- **Not done (learner):** rehearsing the demo, giving the English explanation, making one exercise change without AI, and the screen-reader pass. M5 is not complete until these are recorded here.
 
 ## M4 slice 5: measured performance and M4 closure
 
@@ -152,4 +159,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M5: five-minute demo script, English explanation of the key decisions (update [INTERVIEW](INTERVIEW.md) with M3/M4), and the learner's change made without AI. Still open from M4: the learner's screen-reader pass and the picomatch acceptance review by 2026-12-18; SonarQube/Snyk only if accounts are provided.
+For the learner: rehearse [DEMO](DEMO.md) against a production build, deliver the English explanation from [INTERVIEW](INTERVIEW.md), implement one [EXERCISES](EXERCISES.md) change without AI, run the screen-reader pass from [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md), and record results here. Maintenance: review the picomatch acceptance by 2026-12-18.

@@ -6,7 +6,7 @@ Preparar entrevistas de frontend senior con una pequeña tienda de relojes que p
 
 El MVP tendrá 8–12 relojes ficticios, catálogo con filtros en la URL, ficha, carrito invitado y confirmación simulada. EUR e importes enteros en céntimos. El proveedor posee precios y stock; el navegador envía únicamente IDs y cantidades. Quedan fuera pagos reales, cuentas, datos personales, envíos, descuentos, multimoneda y despliegue empresarial.
 
-Estado de implementación: M0–M4 completos (M4 con excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente). Siguiente: M5. Evidencias en [STATUS](STATUS.md#m4-acceptance-against-plan). Resultados exactos en [STATUS](STATUS.md).
+Estado de implementación: M0–M4 completos (M4 con excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente). M5: materiales preparados ([DEMO](DEMO.md), [INTERVIEW](INTERVIEW.md), [EXERCISES](EXERCISES.md)); falta el ensayo, la explicación en inglés y el cambio sin IA del alumno. Evidencias en [STATUS](STATUS.md#m4-acceptance-against-plan). Resultados exactos en [STATUS](STATUS.md).
 
 ## Hitos y cierre
 

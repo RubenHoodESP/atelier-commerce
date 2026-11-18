@@ -22,7 +22,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M4 están implementados; M5 es el siguiente hito.** M4 tiene excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente.
+**M0–M4 están implementados; M5 tiene sus materiales preparados y depende del alumno.** M4 tiene excepciones documentadas: SonarQube/Snyk no ejecutados y revisión manual con lector de pantalla pendiente.
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
@@ -36,7 +36,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - M4 corte 4: `npm run audit` en CI con [riesgos aceptados](security/accepted-risks.json) con fecha de revisión; producción sin vulnerabilidades; el aviso de picomatch (solo herramientas de test, sin versión corregida) aceptado hasta el 2026-12-18.
 - M4 corte 5: Lighthouse 13.6.0 fijado vía `npx` (`npm run perf`), medianas de laboratorio en [PERFORMANCE](PERFORMANCE.md); el LCP de las rutas con entrada animada es optimista y está documentado. Tabla de cierre en [STATUS](STATUS.md#m4-acceptance-against-plan).
 - Pendiente de M4: revisión manual con lector de pantalla (del alumno) y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
-- M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
+- M5: guion de demo de cinco minutos ([DEMO](DEMO.md)), explicación en inglés de M1–M4 ([INTERVIEW](INTERVIEW.md)) y ejercicios sin solución para el cambio sin IA ([EXERCISES](EXERCISES.md)). Pendiente del alumno: ensayo, explicación, cambio sin IA y revisión con lector de pantalla. No implementar los ejercicios por él.
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
 
@@ -133,4 +133,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M4 están implementados y M5 es el siguiente hito. Explica en español y conserva la interfaz en inglés. Revisa `docs/STATUS.md` (sección Next action) y propón primero el siguiente corte pequeño y verificable, respetando la autoridad de comercio sobre precios/stock y la idempotencia de pedidos. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M4 están implementados y los materiales de M5 están listos; lo pendiente es del alumno. Explica en español y conserva la interfaz en inglés. Revisa `docs/STATUS.md` (sección Next action) y propón primero el siguiente corte pequeño y verificable, respetando la autoridad de comercio sobre precios/stock y la idempotencia de pedidos. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
