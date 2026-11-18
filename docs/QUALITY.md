@@ -22,6 +22,10 @@ Manual review of catalog → detail → bag → order plus automated E2E checks.
 
 `tests/theme-contrast.test.ts` reads both palettes from `globals.css` and enforces WCAG contrast (text 4.5:1; focus and control borders 3:1) plus identical dark blocks. `tests/e2e/theme.spec.ts` covers system/explicit precedence, persistence, server-rendered `data-theme`, the HttpOnly cookie, the no-JS switch and target size. See [ADR 0009](adr/0009-colour-themes.md).
 
+## Dependency audit
+
+`npm run audit` (`scripts/audit-dependencies.mjs`, run in CI after `npm run check`) evaluates `npm audit --omit=dev` and the full `npm audit` against [accepted-risks.json](security/accepted-risks.json): any high/critical production advisory fails; a high/critical dev-only advisory fails unless listed with a future `reviewBy`; an expired acceptance fails; moderate/low advisories and stale acceptances are reported only. If npm audit cannot produce a report (e.g. no registry access) the gate fails rather than passing. The policy logic is unit-tested in `tests/audit-policy.test.ts`. Accepted on 2026-11-18 until 2026-12-18: GHSA-fc5q-39xc-vjpf (picomatch ReDoS, dev tooling via vite/vitest; latest picomatch 4.0.7 is affected and no fixed release exists).
+
 ## CI
 
 Pinned Node -> npm ci -> structural checks -> lint -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint runs after structural checks. SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.

@@ -32,6 +32,8 @@ jobs:
           npm --version
           npm ls express body-parser --all
       - run: npm run check
+      - name: Dependency audit (policy in docs/security/accepted-risks.json)
+        run: npm run audit
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

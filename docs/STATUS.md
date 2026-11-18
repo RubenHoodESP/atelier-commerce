@@ -1,10 +1,17 @@
 # Current state
 
-- **M0–M3 implemented; M4 in progress (slices 1–3: themes, automated accessibility audit, type-aware lint).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
+- **M0–M3 implemented; M4 in progress (slices 1–4: themes, accessibility audit, type-aware lint, dependency audit).** M3 delivered the guest bag, editing, simulated orders with idempotency and the slice-4 header count and accessibility review. M4 (quality and risk tooling) and M5 (interview rehearsal) are next. The storefront now has 12 fictional watches across Horizon, Meridian and Nocturne, an editorial home, SSR catalog and detail pages, out-of-stock display and a real unknown-product 404. The M1 watch-001 fixture is unchanged.
 - `/products` uses collection/sort URL state. Automatic filter navigation, canonical URLs, reload/history and detail return preserve selection. Native GET works without JavaScript. Pending transitions announce activity, disable controls and restore keyboard focus. There is deliberately no shared route loading boundary: streaming it caused 200 responses for missing details and hidden content without JavaScript; regression tests now protect both behaviors.
 - Express adds GET /api/products and GET /api/content/brand. One provider list call handles filtering/sorting with deterministic ID ties. Runtime validation rejects malformed lists, duplicate IDs and count disagreement. All public JSON is normalized; provider-specific fields remain behind the BFF. Existing safe errors, no-store, correlation IDs, per-request timeouts and no automatic retries remain.
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
+
+## M4 slice 4: dependency audit policy
+
+- `npm run audit` gates CI: production high/critical advisories always fail; dev-only high/critical advisories need a dated entry in [accepted-risks.json](security/accepted-risks.json) and fail once `reviewBy` passes; moderate/low and stale entries are notes. No report (no registry) = failure. Policy logic in `scripts/audit-policy.mjs` with 6 unit tests.
+- Results on 2026-11-18: `npm audit --omit=dev` **0 vulnerabilities**. Full audit: one advisory, GHSA-fc5q-39xc-vjpf (picomatch ReDoS, high), reached only through vite 8.3.8 / vitest 5.1.0 (also tinyglobby, fdir). The latest picomatch (4.0.7) is affected and vite/vitest require `^4.0.7`, so no fixed release exists; npm's suggested fix is a major downgrade of vitest/vite. Accepted for dev tooling until 2026-12-18 with that reasoning.
+- Slice 3 follow-up merged in #10: `npm run lint` builds `@atelier/contracts` first because CI lints before typecheck/build and missing declarations produced 9 false type-aware findings; verified from a clean clone.
+- Checks (2026-11-18): `npm run check`, `audit`, `lint`, `typecheck`, `build` passed; `npm test` **110 passed in 9 files**; offline simulation of the audit fails as intended.
 
 ## M4 slice 3: type-aware lint
 
@@ -125,4 +132,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-M4 slice 4: dependency audit policy — `npm audit --omit=dev` in CI failing on high/critical production advisories, and a dated accepted-risk record for the dev-only vite/vitest picomatch advisory (no fixed picomatch release per `npm audit`). Then slice 5: measured Lighthouse runs with recorded conditions, M4 closure table, and the learner's screen-reader pass. SonarQube/Snyk need accounts and remain not run.
+M4 slice 5: measured Lighthouse runs on the production build (home, catalog, detail, bag) with recorded conditions and medians, then the M4 closure table separating executed checks from those not run (SonarQube/Snyk need accounts; the learner's screen-reader pass per [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md)). Review the picomatch acceptance by 2026-12-18 at the latest.

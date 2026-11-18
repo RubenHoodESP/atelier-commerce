@@ -1,0 +1,16 @@
+{
+  "policy": "Production advisories of high or critical severity always fail. Dev-only high/critical advisories fail unless listed here with a future reviewBy date. Moderate and low advisories are reported only.",
+  "risks": [
+    {
+      "advisory": "GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "severity": "high",
+      "scope": "dev",
+      "reachedThrough": ["vite@8.3.8", "vitest@5.1.0", "tinyglobby@0.2.17", "fdir@6.5.0"],
+      "reason": "ReDoS through single-branch repeated extglobs in picomatch <=4.0.7. The latest published picomatch is 4.0.7 and vite/vitest require ^4.0.7, so no fixed release exists (checked 2026-11-18). npm audit's suggested fix is a major downgrade of vitest/vite.",
+      "mitigation": "Dev and test tooling only: not shipped to browsers or production servers, and glob patterns come from repository configuration, not user input.",
+      "acceptedOn": "2026-11-18",
+      "reviewBy": "2026-12-18"
+    }
+  ]
+}
