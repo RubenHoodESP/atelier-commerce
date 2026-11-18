@@ -6,6 +6,13 @@
 - Editorial content is a separate HTTP module inside the existing fictional provider process. Next loads independent catalog/content reads concurrently; editorial failure logs a safe warning and uses local text while retaining real products. Commerce failure shows error/retry, never fabricated products. This is a local simulation, not a CMS integration or operational service isolation.
 - Tailwind 4.3.5, @tailwindcss/postcss 4.3.5 and PostCSS 8.5.33 are pinned with an npm-generated lockfile. Shared theme tokens and SVG illustrations preserve the Atelier visual direction. No new state library, database, remote account or secret is needed.
 
+## Deployment preparation (Vercel + Render)
+
+- Layout: storefront on Vercel (`apps/storefront/vercel.json`, region fra1); BFF and fictional provider as one single-instance Docker service on Render (`render.yaml`, Frankfurt, `/healthz`), started in one process by `scripts/serve-backend.mjs` with the provider on loopback only. Steps: [DEPLOYMENT](DEPLOYMENT.md); decision and limits: [ADR 0010](adr/0010-deployment.md).
+- Shared-token auth: with `BFF_API_TOKEN` set, every `/api` route requires `Authorization: Bearer` (≥32 characters, constant-time SHA-256 comparison, 401 `UNAUTHORIZED`); `/healthz` open; production entry refuses to start without a token; unset locally. The typed client sends it from server-only env. Site-wide `noindex, nofollow` and a disallow-all `robots.txt`. `@atelier/mock-services` now declares its `@atelier/contracts` dependency.
+- Verified (2026-11-18): `tests/auth-integration.test.ts` (7, including the real production entry process); Docker image built (336 MB, Node 22.23.5, non-root `node`, backend production deps only) and run: no token → exit 1; with token `/healthz` 200, `/api` 401 without token, 12 products with it; provider socket bound to 127.0.0.1 only. The local build needed the proxy CA injected through a scratch-only Dockerfile variant; the repository `Dockerfile` is unchanged by that. New CI workflow builds and smoke-tests the image. Vercel build command run from a clean `dist`-less state. Official Render/Vercel docs were not reachable from this environment.
+- **Not done:** the actual deployment on Render and Vercel (needs the owner's accounts) and any measurement of the deployed site.
+
 ## M4 slice 5: measured performance and M4 closure
 
 - `npm run perf` (`scripts/measure-performance.mjs`) runs pinned `lighthouse@13.6.0` through `npx` (not a repository dependency) on the production build and prints medians. Results, conditions and limits: [PERFORMANCE](PERFORMANCE.md). On 2026-11-18, median of 5 mobile runs with simulated throttling on loopback: score 99–100, LCP 0.62–0.76 s, TBT 75–94 ms, CLS 0 on `/`, `/products`, `/products/watch-001`, `/cart`.
@@ -151,4 +158,4 @@ M2 and the Claude handoff were published to GitHub `master` in [2b0eddd9be97abc4
 
 ## Next action
 
-Production deployment: storefront on Vercel and the BFF plus fictional provider as one single-instance service on Render, with a shared token between Next and the BFF (plan agreed, not implemented yet). Still open: the manual screen-reader pass ([A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md)) and the picomatch acceptance review by 2026-12-18; SonarQube/Snyk only if accounts are provided.
+Owner: deploy following [DEPLOYMENT](DEPLOYMENT.md) (Render Blueprint, then the Vercel project with `COMMERCE_API_URL` and `BFF_API_TOKEN`), run its verification list and record the URLs and results here. Still open: the manual screen-reader pass and the picomatch acceptance review by 2026-12-18.

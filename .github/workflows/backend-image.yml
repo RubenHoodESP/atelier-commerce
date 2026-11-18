@@ -1,0 +1,38 @@
+name: Backend image
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the Render image
+        run: docker build -t atelier-backend:ci .
+      - name: Refuses to start without a token
+        run: |
+          if docker run --rm atelier-backend:ci; then echo "expected a non-zero exit without BFF_API_TOKEN"; exit 1; fi
+      - name: Serves the authenticated BFF
+        run: |
+          TOKEN=$(openssl rand -hex 32)
+          docker run -d --name backend -p 127.0.0.1:4000:4000 -e PORT=4000 -e BFF_API_TOKEN="$TOKEN" atelier-backend:ci
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4000/healthz && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4000/healthz)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4000/api/products)" = 401
+          curl -sf -H "Authorization: Bearer $TOKEN" http://127.0.0.1:4000/api/products | grep -q '"total":12'
+      - name: Logs
+        if: always()
+        run: docker logs backend 2>&1 || true

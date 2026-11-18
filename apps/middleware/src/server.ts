@@ -1,16 +1,21 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { createServer } from 'node:http';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { ERROR_STATUS, type CartResult, type OrderResult, type ProductResult } from '@atelier/contracts';
 import { getProduct, type ProviderSettings } from './product.js';
 import { getProducts, getBrandContent } from './catalog.js';
 import { addCartItem, createCart, getCart, setCartItemQuantity } from './cart.js';
 import { getOrder, placeOrder } from './orders.js';
 
-export function createMiddlewareServer(settings: ProviderSettings) {
+// apiToken: when set (deployed BFF reachable over the network), every /api route requires
+// `Authorization: Bearer <token>`. Unset keeps local development and tests unchanged.
+export function createMiddlewareServer(settings: ProviderSettings & { apiToken?: string }) {
   const provider = new URL(settings.providerUrl);
   if (!['http:', 'https:'].includes(provider.protocol) || provider.username || provider.password) throw new Error('Invalid provider URL configuration.');
   if (!Number.isInteger(settings.timeoutMs) || settings.timeoutMs < 1 || settings.timeoutMs > 30000) throw new Error('Invalid provider timeout configuration.');
+  if (settings.apiToken !== undefined && settings.apiToken.length < 32) throw new Error('The BFF API token must have at least 32 characters.');
+  // Hashing both sides gives equal-length buffers, so the comparison is constant-time.
+  const expectedToken = settings.apiToken ? createHash('sha256').update(settings.apiToken).digest() : null;
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -20,6 +25,13 @@ export function createMiddlewareServer(settings: ProviderSettings) {
     next();
   });
   app.get('/healthz', (_req, res) => { res.json({ status: 'ok' }); });
+  app.use('/api', (req, res, next) => {
+    if (!expectedToken) { next(); return; }
+    const header = req.get('authorization') ?? '';
+    const supplied = header.startsWith('Bearer ') ? header.slice('Bearer '.length) : '';
+    if (timingSafeEqual(createHash('sha256').update(supplied).digest(), expectedToken)) { next(); return; }
+    res.status(401).json({ ok: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required.', requestId: res.locals.requestId } });
+  });
   app.get('/api/products', async (req, res, next) => {
     try {
       const result = await getProducts(settings, req.query, res.locals.requestId);

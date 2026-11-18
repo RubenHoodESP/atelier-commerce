@@ -8,6 +8,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@atelier/contracts": "0.1.0",
     "express": "4.22.3"
   }
 }

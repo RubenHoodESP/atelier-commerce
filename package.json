@@ -23,6 +23,7 @@
     "test:e2e": "playwright test",
     "dev": "npm run build:services && node scripts/run-stack.mjs dev",
     "start": "node scripts/run-stack.mjs start",
+    "start:backend": "node scripts/serve-backend.mjs",
     "perf": "node scripts/measure-performance.mjs"
   },
   "devDependencies": {

@@ -48,7 +48,7 @@ Start with [CLAUDE.md](CLAUDE.md) and the [complete handoff](docs/CLAUDE_HANDOFF
 ## Project documents
 
 - [Plan](docs/PLAN.md), [architecture](docs/ARCHITECTURE.md), [quality](docs/QUALITY.md)
-- [Current state](docs/STATUS.md), [stack](docs/STACK.md), [performance](docs/PERFORMANCE.md)
+- [Current state](docs/STATUS.md), [stack](docs/STACK.md), [performance](docs/PERFORMANCE.md), [deployment](docs/DEPLOYMENT.md)
 - [Express decision](docs/adr/0003-express-bff.md), [catalog/content decision](docs/adr/0004-catalog-url-and-content.md)
 - [Agent agreement](AGENTS.md), [publication](docs/PUBLISH.md)
 
