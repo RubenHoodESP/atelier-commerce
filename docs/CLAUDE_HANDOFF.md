@@ -22,7 +22,7 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 
 ## 2. Estado recibido
 
-**M0–M3 están implementados; M4 está en curso (cortes 1–3: temas, auditoría de accesibilidad y lint con tipos).**
+**M0–M3 están implementados; M4 está en curso (cortes 1–4: temas, auditoría de accesibilidad, lint con tipos y auditoría de dependencias).**
 
 - M0: estructura, contratos, arquitectura y flujos de trabajo versionados.
 - M1: ficha SSR y recorrido real por HTTP Next → cliente REST → Express → proveedor ficticio; validación en ejecución, normalización, errores seguros y 404 real.
@@ -33,7 +33,8 @@ El MVP abarca catálogo de 8–12 relojes, filtros URL, ficha, carrito invitado 
 - M4 corte 1: tema claro/oscuro con selector Auto/Light/Dark, cookie HttpOnly y `data-theme` desde el servidor; contraste de ambas paletas comprobado por test ([ADR 0009](adr/0009-colour-themes.md)). La CI ya se puede leer con las herramientas de GitHub y pasó en las PR #5–#7.
 - M4 corte 2: axe en todo el recorrido y ambos temas, 0 infracciones tras corregir `label-content-name-mismatch` con tarjetas de enlace extendido y el nombre visible de la bolsa; guion manual de lector de pantalla en [A11Y_MANUAL_CHECK](A11Y_MANUAL_CHECK.md), pendiente de ejecutar.
 - M4 corte 3: lint con tipos (`oxlint-tsgolint` 7.0.2005, compatible con TypeScript 7.0.2) en `npm run lint`, CI y hook; 59 hallazgos corregidos sin cambiar comportamiento, sustituyendo aserciones por guards que estrechan el tipo.
-- M4 pendiente: política de auditoría de dependencias, rendimiento medido con Lighthouse, revisión manual con lector de pantalla (del alumno) y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
+- M4 corte 4: `npm run audit` en CI con [riesgos aceptados](security/accepted-risks.json) con fecha de revisión; producción sin vulnerabilidades; el aviso de picomatch (solo herramientas de test, sin versión corregida) aceptado hasta el 2026-12-18.
+- M4 pendiente: rendimiento medido con Lighthouse, revisión manual con lector de pantalla (del alumno) y SonarQube/Snyk (requieren cuentas); no describirlas como aprobadas.
 - M5 pendiente: demo de cinco minutos, explicación en inglés y modificación sin IA. Hay material en [INTERVIEW](INTERVIEW.md).
 
 La migración histórica a Express fue una decisión explícita del usuario: eliminar el SDK externo, los paquetes privados y el puente CommonJS. No reintroducirlos. No atribuir a este ejercicio experiencia profesional con proveedores comerciales.
@@ -113,11 +114,11 @@ M2 se validó en esta máquina con instalación limpia, chequeo estructural, tip
 
 M1 tiene un [resultado CI histórico](https://github.com/RubenHoodESP/atelier-commerce/actions/runs/44077314459): 19 pruebas y dos E2E. No presentarlo como CI de M2. Consultar [STATUS](STATUS.md) para evidencia más reciente.
 
-M2 y este relevo se publicaron en `master` con el commit [2b0eddd9be97abc4e950d326c378adfea7ed229c](https://github.com/RubenHoodESP/atelier-commerce/commit/2b0eddd9be97abc4e950d326c378adfea7ed229c), comprobado con el SHA remoto. Un commit posterior solo registra esta evidencia. El acceso a la API de Actions devuelve `Forbidden`: CI remota de M2 no verificada.
+M2 y este relevo se publicaron en `master` con el commit [2b0eddd9be97abc4e950d326c378adfea7ed229c](https://github.com/RubenHoodESP/atelier-commerce/commit/2b0eddd9be97abc4e950d326c378adfea7ed229c), comprobado con el SHA remoto. Un commit posterior solo registra esta evidencia. Durante M2 la API de Actions devolvía `Forbidden`; desde M4 los resultados de CI se leen con las herramientas de GitHub y [STATUS](STATUS.md) registra los verificados.
 
 Para identificar la revisión disponible, usar `git log -1 --oneline` y `git status --short`. Antes de afirmar que está publicada, comparar el commit local con `git ls-remote origin refs/heads/master`. La base de M1 era `70687b0c1aa9b4e45816e2fd46cc6a2abf8baa13`; M2 y este relevo se publicaron preservando ese historial. No hacer force-push.
 
-El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa autorización no es una instrucción permanente de publicar futuros cambios de Claude. El entorno en la nube se publicó anteriormente; su snapshot no debe suponerse actualizado con M2 y no se modifica como parte de esta publicación. El acceso por Git funciona; la API de GitHub devolvió `Forbidden`. No asumir CI aprobada ni permisos de API a partir de una operación Git exitosa.
+El usuario autorizó publicar M2 y este relevo en `master`, solo en GitHub. Esa autorización no es una instrucción permanente de publicar futuros cambios de Claude. El entorno en la nube se publicó anteriormente; su snapshot no debe suponerse actualizado con M2 y no se modifica como parte de esta publicación. No asumir CI aprobada a partir de una operación Git exitosa: comprobar el resultado de la ejecución concreta.
 
 ## 7. M3 (completado) y cómo continuar
 
@@ -131,4 +132,4 @@ Ampliar pruebas con cada avance, sin esperar a M4. Mantener documentación y con
 
 ## 8. Mensaje para iniciar una sesión de Claude
 
-> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M2 están implementados y M4 está en curso (cortes 1–3 hechos). Explica en español y conserva la interfaz en inglés. Revisa el alcance y propón primero una parte pequeña y verificable del carrito invitado, respetando la autoridad de comercio sobre precios/stock y la futura idempotencia. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
+> Continúa Atelier Commerce desde este repositorio. Lee CLAUDE.md, AGENTS.md, docs/CLAUDE_HANDOFF.md y docs/STATUS.md. Comprueba el estado Git y las versiones antes de actuar; no dependas del chat de Codex ni de sus archivos ignorados. M0–M3 están implementados y M4 está en curso (cortes 1–4 hechos). Explica en español y conserva la interfaz en inglés. Revisa `docs/STATUS.md` (sección Next action) y propón primero el siguiente corte pequeño y verificable, respetando la autoridad de comercio sobre precios/stock y la idempotencia de pedidos. Carga solo las skills y el contexto relevantes. No publiques ni cambies el entorno en la nube sin una nueva instrucción.
