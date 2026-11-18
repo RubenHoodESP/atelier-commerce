@@ -32,6 +32,9 @@ Lab measurements with a pinned Lighthouse, reproduction steps and limits (includ
 
 ## CI
 
+The Backend image workflow builds the Render `Dockerfile` and checks that the container refuses to start without `BFF_API_TOKEN` and, with it, answers `/healthz` 200 and `/api` 401 without a token.
+
+
 Pinned Node -> npm ci -> structural checks -> lint -> typecheck -> Vitest -> production build -> Chromium install -> E2E. Foundation checks also run separately. Tests have bounded time limits. Lint runs after structural checks. SonarQube, Snyk and measured accessibility/performance audits remain pending. Future scanner credentials belong in CI secrets, not files. A skipped scan has not passed.
 
 ### Lint decisions

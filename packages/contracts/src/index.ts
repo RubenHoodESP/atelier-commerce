@@ -6,6 +6,7 @@ export type Product = {
 export type ProductQuery = { id: string };
 export const ERROR_STATUS = {
   INVALID_INPUT: 400,
+  UNAUTHORIZED: 401,
   PRODUCT_NOT_FOUND: 404,
   CART_NOT_FOUND: 404,
   CART_LINE_NOT_FOUND: 404,

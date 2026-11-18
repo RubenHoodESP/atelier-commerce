@@ -11,6 +11,7 @@ export async function getBrandContent(): Promise<BrandContent> {
     const result = await createContentClient({
       baseUrl: process.env.COMMERCE_API_URL ?? 'http://127.0.0.1:4000/api',
       timeoutMs: Number(process.env.COMMERCE_API_TIMEOUT_MS ?? 2500),
+      apiToken: process.env.BFF_API_TOKEN || undefined,
     }).getBrandContent();
     if (result.ok) return result.content;
     console.warn('Editorial fallback', { code: result.error.code, requestId: result.error.requestId });

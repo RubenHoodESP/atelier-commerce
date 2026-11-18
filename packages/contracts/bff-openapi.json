@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Atelier Express Integration API",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Normalized product, catalog, editorial, guest-cart and simulated-order REST boundary. Called by the Next server only."
   },
   "servers": [
@@ -1612,6 +1612,7 @@
                 "type": "string",
                 "enum": [
                   "INVALID_INPUT",
+                  "UNAUTHORIZED",
                   "PRODUCT_NOT_FOUND",
                   "CART_NOT_FOUND",
                   "CART_LINE_NOT_FOUND",
@@ -1891,6 +1892,19 @@
           }
         }
       }
+    },
+    "securitySchemes": {
+      "bffToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Shared secret between the storefront server and a deployed BFF (BFF_API_TOKEN). When configured, every /api route answers 401 UNAUTHORIZED without it; /healthz stays open. Not used locally."
+      }
     }
-  }
+  },
+  "security": [
+    {
+      "bffToken": []
+    },
+    {}
+  ]
 }

@@ -44,6 +44,10 @@ The bag renders a Place order form with a hidden idempotency key. The `placeOrde
 
 The root layout reads the guest cart (only when the cookie exists) and passes the unit count to the client `SiteHeader`; a failed read shows "Bag" without a number. Bag-changing Server Actions call `revalidatePath('/', 'layout')` because layouts persist across client navigations.
 
+## Deployment
+
+Production runs the storefront on Vercel and the BFF plus the fictional provider as one single-instance Render service in one Node process (`scripts/serve-backend.mjs`): the provider listens on loopback inside the container, the BFF on the public port. Because the BFF is then reachable over the network, every `/api` route requires a shared bearer token (`BFF_API_TOKEN`) sent only from the storefront server. See [DEPLOYMENT](DEPLOYMENT.md) and [ADR 0010](adr/0010-deployment.md).
+
 ## Trust and future writes
 
 - Trusted server configuration supplies addresses; user input cannot choose proxy URLs. Next configuration is server-only. Services bind to loopback on ports 3000/4000/4100. No browser CORS allowance is needed.

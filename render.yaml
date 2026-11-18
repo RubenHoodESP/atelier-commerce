@@ -1,0 +1,21 @@
+# Render Blueprint: the BFF + fictional provider as ONE always-on instance.
+# Keep numInstances at 1: the provider's stock/order critical section and in-memory state are only
+# valid in a single process (docs/adr/0006, docs/adr/0010). The storefront is deployed on Vercel.
+services:
+  - type: web
+    name: atelier-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: master
+    region: frankfurt
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /healthz
+    envVars:
+      # Shared secret with the Vercel storefront. Render asks for the value when the Blueprint is
+      # created; it is never stored in this file. Generate it with the command in docs/DEPLOYMENT.md.
+      - key: BFF_API_TOKEN
+        sync: false
+      - key: PROVIDER_TIMEOUT_MS
+        value: "1500"

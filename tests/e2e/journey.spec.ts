@@ -95,3 +95,11 @@ test('the whole catalog card is clickable although only the name is the link', a
   await card.click({ position: { x: 120, y: 120 } });
   await expect(page.getByRole('heading', { name: 'Atelier Meridian Slate' })).toBeVisible();
 });
+
+test('the demo store asks search engines not to index it', async ({ request }) => {
+  const html = await (await request.get('/products')).text();
+  expect(html).toMatch(/<meta name="robots" content="noindex, nofollow"/);
+  const robots = await request.get('/robots.txt');
+  expect(robots.ok()).toBe(true);
+  expect(await robots.text()).toMatch(/User-Agent: \*\s+Disallow: \//i);
+});
