@@ -43,12 +43,12 @@ Catalog example: `/products?collection=horizon&sort=price-asc`. Filters update a
 
 ## Continue with Claude
 
-Start with [CLAUDE.md](CLAUDE.md) and the [complete handoff](docs/CLAUDE_HANDOFF.md), including setup, architectural decisions, evidence, limitations and the next M3 task.
+Start with [CLAUDE.md](CLAUDE.md) and the [complete handoff](docs/CLAUDE_HANDOFF.md), including setup, architectural decisions, evidence, limitations and the next task.
 
 ## Project documents
 
 - [Plan](docs/PLAN.md), [architecture](docs/ARCHITECTURE.md), [quality](docs/QUALITY.md)
-- [Current state](docs/STATUS.md), [stack](docs/STACK.md), [interview practice](docs/INTERVIEW.md)
+- [Current state](docs/STATUS.md), [stack](docs/STACK.md), [performance](docs/PERFORMANCE.md)
 - [Express decision](docs/adr/0003-express-bff.md), [catalog/content decision](docs/adr/0004-catalog-url-and-content.md)
 - [Agent agreement](AGENTS.md), [publication](docs/PUBLISH.md)
 
