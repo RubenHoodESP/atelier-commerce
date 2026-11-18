@@ -22,7 +22,8 @@
     "test": "npm run build:services && vitest run",
     "test:e2e": "playwright test",
     "dev": "npm run build:services && node scripts/run-stack.mjs dev",
-    "start": "node scripts/run-stack.mjs start"
+    "start": "node scripts/run-stack.mjs start",
+    "perf": "node scripts/measure-performance.mjs"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "12.1.0",
